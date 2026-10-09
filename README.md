@@ -60,12 +60,6 @@ Your loaded data is remembered in your browser for next time. **Back to sample d
 
 Rebuild: `cd build && npm install && python generate_data.py && node geo.mjs && python build_site.py`
 
-## Publish free on GitHub Pages
-
-1. Push this folder to a public GitHub repo.
-2. Repo **Settings → Pages → Source: Deploy from a branch → main → / (root) → Save**.
-3. After a minute the app is live at `https://<your-username>.github.io/<repo-name>/`.
-
 ## Limits
 
 - Data is synthetic; carrier names, volumes and costs are invented.

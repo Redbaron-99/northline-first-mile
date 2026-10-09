@@ -1,0 +1,17 @@
+code,name,type,lat,lon,trailer_pool
+BRA,Brampton,DC,43.73,-79.76,56
+LAV,Laval,DC,45.57,-73.69,26
+DEL,Delta,DC,49.08,-123.06,20
+WPG,Winnipeg,Cross-dock,49.9,-97.14,
+MON,Moncton,Cross-dock,46.09,-64.78,
+CGY,Calgary,Cross-dock,51.05,-114.07,
+OTT,Ottawa,Service centre,45.42,-75.7,
+LDN,London,Service centre,42.98,-81.25,
+SUD,Sudbury,Service centre,46.49,-80.99,
+TBY,Thunder Bay,Service centre,48.38,-89.25,
+QUE,Quebec City,Service centre,46.81,-71.21,
+HFX,Halifax,Service centre,44.65,-63.58,
+REG,Regina,Service centre,50.45,-104.62,
+SAS,Saskatoon,Service centre,52.13,-106.67,
+EDM,Edmonton,Service centre,53.55,-113.49,
+KEL,Kelowna,Service centre,49.89,-119.5,

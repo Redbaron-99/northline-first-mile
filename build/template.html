@@ -1,0 +1,1049 @@
+<title>Northline First Mile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: control-room console. Header + filter strip, KPI rail, tabbed workspace; map is the anchor of the first tab. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#E9EDF3; --ink:#14213D; --muted:#56627A; --line:#D8DEE8;
+  --accent:#C9A227; --accent-ink:#7A5E00; --bar:#1F3A6B; --bar-soft:#AEBBD3; --land:#E3E8F0; --land-2:#EEF1F5; --coast:#C9D1DE;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0D1524; --surface:#141E33; --sunk:#1B2740; --ink:#E8ECF3; --muted:#A2ADC3; --line:#2A3757;
+  --accent:#D8B444; --accent-ink:#E7C866; --bar:#D8B444; --bar-soft:#4A5A80; --land:#1D2A45; --land-2:#17223A; --coast:#33446A; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0D1524; --surface:#141E33; --sunk:#1B2740; --ink:#E8ECF3; --muted:#A2ADC3; --line:#2A3757;
+  --accent:#D8B444; --accent-ink:#E7C866; --bar:#D8B444; --bar-soft:#4A5A80; --land:#1D2A45; --land-2:#17223A; --coast:#33446A; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:18px 40px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:34px;line-height:1}
+h2{font-size:22px}
+h3{font-size:17px;font-weight:600}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:3px solid var(--accent);padding-bottom:12px}
+header .sub{max-width:62ch;color:var(--muted);margin-top:6px}
+.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:3px;padding:3px 7px;color:var(--muted);background:var(--surface)}
+.filters{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end}
+.filters label,.ctrl label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+select,input[type=range]{font:inherit;font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink)}
+select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-width:130px}
+select:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.kpi{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .v{font-family:var(--display);font-size:30px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--muted)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.02em;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:8px 12px 7px;cursor:pointer;min-height:44px}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs button:hover{color:var(--ink)}
+.panel{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}
+.grid2{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
+.grid2.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:900px){.grid2,.grid2.even{grid-template-columns:minmax(0,1fr)}}
+.lead{max-width:72ch}
+.insight{border-left:3px solid var(--accent);padding:4px 0 4px 12px;max-width:80ch}
+.insight b{font-weight:600}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;cursor:pointer;user-select:none;background:var(--surface);position:sticky;top:0}
+th[aria-sort=ascending]::after{content:" \25B2";font-size:9px}
+th[aria-sort=descending]::after{content:" \25BC";font-size:9px}
+tbody tr:hover{background:var(--sunk)}
+tr.sel{background:var(--sunk);box-shadow:inset 3px 0 0 var(--accent)}
+tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:var(--surface)}
+.pill i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.inbar{display:inline-flex;align-items:center;gap:6px}
+.inbar span.track{display:inline-block;width:70px;height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.inbar span.fill{display:block;height:100%;background:var(--bar);border-radius:0 4px 4px 0}
+.inbar span.fill.low{background:var(--crit)}
+svg text{fill:var(--ink);font-family:var(--body)}
+.map-wrap{position:relative}
+.map svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);align-items:center}
+.legend .sw{display:inline-block;width:22px;height:6px;border-radius:3px;vertical-align:middle;margin-right:6px}
+.legend .shape{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px;background:var(--ink)}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;line-height:1.4;padding:7px 9px;border-radius:4px;max-width:260px;z-index:20;opacity:0;transition:opacity .08s}
+#tip b{font-weight:600}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:flex-end}
+.ctrl{display:flex;flex-direction:column;gap:4px;min-width:200px}
+.ctrl output{font-family:var(--display);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+input[type=range]{accent-color:var(--accent);width:100%}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.stat{border-top:2px solid var(--ink);padding-top:6px}
+.stat .v{font-family:var(--display);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat.gold{border-top-color:var(--accent)}
+.detail dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:8px 0 0}
+.detail dt{color:var(--muted)}
+.detail dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.foot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;max-width:90ch}
+.hit{fill:transparent;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>
+.banner{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:10px 14px}
+.banner b{font-weight:600}
+.btn{font:inherit;font-weight:600;font-size:14px;border-radius:4px;padding:9px 14px;min-height:40px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--surface)}
+.btn.ghost{background:var(--surface);color:var(--ink)}
+.btn.link{border:0;background:none;color:var(--accent-ink);padding:4px 0;min-height:0;text-decoration:underline;text-underline-offset:3px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.upload{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.drop{border:2px dashed var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.drop.ok{border-color:var(--good)}
+.drop input[type=file]{font:inherit;font-size:13px;color:var(--muted);max-width:100%}
+.drop label{font-weight:600}
+input[type=number]{font:inherit;width:90px;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink)}
+.msg{border-radius:6px;padding:10px 14px;border:1px solid var(--line);background:var(--surface)}
+.msg.err{border-left:4px solid var(--crit)}
+.msg.ok{border-left:4px solid var(--good)}
+.msg ul{margin:6px 0 0;padding-left:18px}
+pre.tpl{background:var(--sunk);border-radius:4px;padding:10px;overflow-x:auto;font-size:12px;line-height:1.5;margin:6px 0 0}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:600}
+.cols td,.cols th{white-space:normal;text-align:left}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+:root{--y1:#BAC6DB;--y2:#7C90B6;--y3:#1F3A6B;--y4:#C9A227;--band:rgba(201,162,39,.13)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--y1:#3C4A6C;--y2:#6E84B2;--y3:#B4C4E6;--y4:#D8B444;--band:rgba(216,180,68,.12)} }
+:root[data-theme="dark"]{--y1:#3C4A6C;--y2:#6E84B2;--y3:#B4C4E6;--y4:#D8B444;--band:rgba(216,180,68,.12)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface)}
+.seg button{font:inherit;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;border:0;background:none;color:var(--muted);padding:7px 11px;cursor:pointer;min-height:34px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-checked=true]{background:var(--ink);color:var(--surface)}
+.stepper{display:flex;gap:4px;align-items:end}
+.icon-btn{font:inherit;font-size:16px;line-height:1;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;width:34px;height:34px;cursor:pointer}
+.icon-btn:disabled{opacity:.4;cursor:not-allowed}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:end}
+.chip{font:inherit;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 10px;cursor:pointer}
+.chip:hover{color:var(--ink);border-color:var(--muted)}
+.kpi{cursor:help;position:relative}
+.kpi:hover,.kpi:focus-visible{background:var(--sunk)}
+.kpi .eyebrow{display:flex;align-items:center;gap:6px}
+.kpi .eyebrow svg{flex:none;opacity:.7}
+.delta{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.delta i{font-style:normal;font-size:10px;margin-right:2px}
+#tip.wide{max-width:340px;padding:10px 12px}
+#tip .tt-h{font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.02em;margin-bottom:4px}
+#tip .tt-s{margin-top:7px}
+#tip .tt-f{margin-top:7px;padding:6px 8px;border-radius:3px;background:rgba(127,140,170,.22);font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;font-size:11.5px;line-height:1.5}
+#tip .tt-k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.7;font-weight:600;margin-top:8px}
+.card-head{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:flex-end}
+.basis{font-size:12px;color:var(--muted);margin:0}
+.basis b{color:var(--ink);font-weight:600}
+td .delta{margin-left:0}
+.yoy td:first-child{font-weight:600}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow" id="eyebrow">First-mile linehaul · Canada</div>
+      <h1>Northline First Mile</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <span class="tag" id="rangeTag"></span>
+  </header>
+
+  <div class="banner" id="banner" aria-live="polite"></div>
+
+  <div class="filters" role="group" aria-label="Filters">
+    <label for="fOrigin">Origin<select id="fOrigin"></select></label>
+    <label for="fCarrier">Carrier<select id="fCarrier"></select></label>
+    <label>View by<span class="seg" role="radiogroup" aria-label="View by" id="gSeg">
+      <button role="radio" data-g="week" aria-checked="false">Week</button><button role="radio" data-g="month" aria-checked="true">Month</button><button role="radio" data-g="quarter" aria-checked="false">Quarter</button><button role="radio" data-g="year" aria-checked="false">Year</button></span></label>
+    <div class="stepper">
+      <button class="icon-btn" id="prevP" aria-label="Previous period" title="Previous period">‹</button>
+      <label for="fFrom" id="lFrom">From<select id="fFrom"></select></label>
+      <label for="fTo" id="lTo">To<select id="fTo"></select></label>
+      <button class="icon-btn" id="nextP" aria-label="Next period" title="Next period">›</button>
+    </div>
+    <div class="presets" role="group" aria-label="Quick ranges">
+      <button class="chip" data-preset="latest">Latest 12 months</button>
+      <button class="chip" data-preset="lastfull">Last full year</button>
+      <button class="chip" data-preset="all">All history</button>
+    </div>
+  </div>
+
+  <section class="kpis" id="kpis" aria-label="Key figures"></section>
+
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" id="t-network" aria-controls="p-network" aria-selected="true">Network</button>
+    <button role="tab" id="t-lanes" aria-controls="p-lanes" aria-selected="false">Lanes &amp; carriers</button>
+    <button role="tab" id="t-consol" aria-controls="p-consol" aria-selected="false">Consolidation</button>
+    <button role="tab" id="t-peak" aria-controls="p-peak" aria-selected="false">Peak planner</button>
+    <button role="tab" id="t-trailers" aria-controls="p-trailers" aria-selected="false">Trailer balance</button>
+    <button role="tab" id="t-data" aria-controls="p-data" aria-selected="false">Your data</button>
+  </nav>
+
+  <!-- NETWORK -->
+  <section class="panel" id="p-network" role="tabpanel" aria-labelledby="t-network">
+    <div class="grid2">
+      <div class="card map-wrap">
+        <div class="legend" style="margin-bottom:8px">
+          <span><span class="sw" style="background:var(--good)"></span>On target (92%+)</span>
+          <span><span class="sw" style="background:var(--warn)"></span>Watch (85 to 92%)</span>
+          <span><span class="sw" style="background:var(--crit)"></span>Below 85%</span>
+          <span>Line width = loads</span>
+        </div>
+        <div class="map" id="map"></div>
+        <div class="legend" style="margin-top:6px">
+          <span><span class="shape"></span>DC</span>
+          <span><span class="shape" style="transform:rotate(45deg) scale(.85)"></span>Cross-dock</span>
+          <span><span class="shape" style="border-radius:50%"></span>Service centre</span>
+          <span>Click a lane for details</span>
+        </div>
+      </div>
+      <div class="card detail" id="laneDetail" aria-live="polite"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><h3 id="trendTitle">Network trend</h3>
+          <p class="muted" style="margin:2px 0 0" id="trendNote"></p></div>
+        <label class="ctrl" style="min-width:0;flex-direction:row;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)" for="mSel">Measure
+          <select id="mSel"><option value="otp">On-time %</option><option value="fill">Avg trailer fill</option><option value="cpl">Cost per load</option><option value="cpp">Cost per pallet</option><option value="lpw">Loads per week</option></select></label>
+      </div>
+      <div id="trendChart" style="margin-top:8px"></div>
+    </div>
+    <div class="grid2 even">
+      <div class="card">
+        <h3>Same month, each year</h3>
+        <p class="muted" style="margin:2px 0 8px" id="yoyNote">One line per year, so seasonality and year-over-year change sit side by side.</p>
+        <div class="legend" id="yoyLegend" style="margin-bottom:6px"></div>
+        <div id="yoyChart"></div>
+      </div>
+      <div class="card">
+        <h3>Year over year</h3>
+        <p class="muted" style="margin:2px 0 8px" id="yoyTableNote"></p>
+        <div class="scroll"><table class="yoy" id="yoyTable"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LANES -->
+  <section class="panel" id="p-lanes" role="tabpanel" aria-labelledby="t-lanes" hidden>
+    <p class="insight" id="laneInsight"></p>
+    <div class="card">
+      <h3>Lane scorecard</h3>
+      <p class="muted" style="margin:2px 0 8px" id="fillNote"></p>
+      <div class="scroll"><table id="laneTable"></table></div>
+    </div>
+    <div class="card">
+      <h3>Carrier scorecard</h3>
+      <p class="muted" style="margin:2px 0 8px">Avg delay counts late loads only, and shows only when the data includes hours late.</p>
+      <div class="scroll"><table id="carrierTable"></table></div>
+    </div>
+  </section>
+
+  <!-- CONSOLIDATION -->
+  <section class="panel" id="p-consol" role="tabpanel" aria-labelledby="t-consol" hidden>
+    <p class="lead">When every lane ships every operating day, thin lanes run half-empty trailers. This view picks the number of departures per week that uses the fewest trucks while keeping a minimum service frequency. Move the sliders to set the rules.</p>
+    <p class="basis" data-basis></p>
+    <div class="card ctrls">
+      <div class="ctrl"><label for="cFill">Max planned trailer fill</label><output id="oFill" for="cFill"></output><input id="cFill" type="range" min="80" max="100" step="1" value="90"></div>
+      <div class="ctrl"><label for="cMinSC">Min departures/week to service centres</label><output id="oMinSC" for="cMinSC"></output><input id="cMinSC" type="range" min="1" max="6" step="1" value="3"></div>
+      <div class="ctrl"><label for="cMinDC">Min departures/week, DC and cross-dock lanes</label><output id="oMinDC" for="cMinDC"></output><input id="cMinDC" type="range" min="1" max="6" step="1" value="5"></div>
+    </div>
+    <div class="stats" id="consolStats"></div>
+    <div class="panel">
+      <div class="card"><h3>Recommended plan by lane</h3><div class="scroll" style="margin-top:8px"><table id="consolTable"></table></div></div>
+      <div class="card"><h3>Annual savings by lane</h3><p class="muted" style="margin:2px 0 8px">$ per year at the recommended frequency.</p><div id="consolChart" style="max-width:640px"></div></div>
+    </div>
+    <p class="foot" id="consolMethod"></p>
+  </section>
+
+  <!-- PEAK -->
+  <section class="panel" id="p-peak" role="tabpanel" aria-labelledby="t-peak" hidden>
+    <p class="lead">Peak season adds volume on every lane. This view estimates how many trailers each DC needs and how much freight the contracted carriers can't absorb, so the plan is in place before the volume arrives.</p>
+    <p class="basis" data-basis></p>
+    <div class="card ctrls">
+      <div class="ctrl"><label for="pUp">Peak volume increase</label><output id="oUp" for="pUp"></output><input id="pUp" type="range" min="0" max="60" step="5" value="30"></div>
+      <div class="ctrl"><label for="pCap">Carrier committed capacity above today</label><output id="oCap" for="pCap"></output><input id="pCap" type="range" min="0" max="40" step="5" value="15"></div>
+      <div class="ctrl"><label for="pSpot">Spot market premium</label><output id="oSpot" for="pSpot"></output><input id="pSpot" type="range" min="10" max="60" step="5" value="25"></div>
+    </div>
+    <div class="stats" id="peakStats"></div>
+    <div class="grid2 even">
+      <div class="card"><h3>Trailers needed vs owned pool</h3><p class="muted" style="margin:2px 0 8px" id="poolNote">Bars show trailers needed at peak; the gold tick is the owned pool.</p><div id="peakChart"></div></div>
+      <div class="card"><h3>Carrier capacity at peak</h3><div class="scroll" style="margin-top:8px"><table id="peakTable"></table></div></div>
+    </div>
+    <p class="foot">Method: trailers needed = loads per day × cycle days, where cycle = transit out + transit back + 1 day to load and unload. Only DC-origin lanes use the owned pool; cross-dock lanes run on carrier equipment. Loads beyond committed capacity go to the spot market at the premium set above.</p>
+  </section>
+
+  <!-- TRAILERS -->
+  <section class="panel" id="p-trailers" role="tabpanel" aria-labelledby="t-trailers" hidden>
+    <p class="basis" data-basis></p>
+    <p class="insight" id="trailerInsight"></p>
+    <div class="grid2">
+      <div class="card"><h3>Empty return km per week by lane</h3><p class="muted" style="margin:2px 0 8px">Trailers that come back empty because there is no freight on the return lane.</p><div id="emptyChart"></div></div>
+      <div class="card"><h3>Loaded flows</h3><div class="scroll" style="margin-top:8px"><table id="trailerTable"></table></div></div>
+    </div>
+  </section>
+
+  <!-- YOUR DATA -->
+  <section class="panel" id="p-data" role="tabpanel" aria-labelledby="t-data" hidden>
+    <div class="card" style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <h2>Use your own data</h2>
+        <p class="lead muted" style="margin:4px 0 0">Load two CSV files: one row per load, and one row per site. Export them from your TMS or build them in Excel (File › Save As › CSV). Files are read in your browser only; nothing is uploaded anywhere.</p>
+      </div>
+      <div class="upload">
+        <div class="drop" id="dropLoads">
+          <label for="fileLoads">1. Loads file <span class="muted" style="font-weight:400">(required)</span></label>
+          <span class="muted" style="font-size:12px">date, origin, destination, carrier, pallets, cost, on_time</span>
+          <input id="fileLoads" type="file" accept=".csv,text/csv">
+          <span id="infoLoads" class="muted" style="font-size:12px"></span>
+        </div>
+        <div class="drop" id="dropSites">
+          <label for="fileSites">2. Sites file <span class="muted" style="font-weight:400">(required)</span></label>
+          <span class="muted" style="font-size:12px">code, name, type, lat, lon, trailer_pool</span>
+          <input id="fileSites" type="file" accept=".csv,text/csv">
+          <span id="infoSites" class="muted" style="font-size:12px"></span>
+        </div>
+        <div class="drop" style="border-style:solid">
+          <label for="capIn">Pallet positions per trailer</label>
+          <span class="muted" style="font-size:12px">26 for a 53' trailer, 24 for a 48'.</span>
+          <input id="capIn" type="number" min="1" max="60" step="1" value="26">
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnLoad" disabled>Load my data</button>
+        <button class="btn ghost" id="btnSample">Back to sample data</button>
+      </div>
+      <div id="dataMsg" aria-live="polite"></div>
+
+      <details open>
+        <summary>Loads file columns</summary>
+        <div class="scroll"><table class="cols" style="margin-top:8px"><thead><tr><th>Column</th><th>Required</th><th>What goes in it</th></tr></thead><tbody>
+          <tr><td>date</td><td>Yes</td><td>Ship date, YYYY-MM-DD (2026-07-06)</td></tr>
+          <tr><td>origin</td><td>Yes</td><td>Site code where the load starts. Must match a code in the sites file</td></tr>
+          <tr><td>destination</td><td>Yes</td><td>Site code where the load is delivered</td></tr>
+          <tr><td>carrier</td><td>Yes</td><td>Carrier name</td></tr>
+          <tr><td>pallets</td><td>Yes</td><td>Pallets (or pallet positions) on the trailer</td></tr>
+          <tr><td>cost</td><td>Yes</td><td>Total load cost in $, including fuel</td></tr>
+          <tr><td>on_time</td><td>Yes*</td><td>Y or N (also 1/0, yes/no). *Optional if you give hours_late</td></tr>
+          <tr><td>hours_late</td><td>No</td><td>Hours after the appointment (negative = early). Late means more than 1 hour</td></tr>
+          <tr><td>km</td><td>No</td><td>Lane distance. If blank, estimated from the site coordinates</td></tr>
+        </tbody></table></div>
+        <pre class="tpl" id="tplLoads">date,origin,destination,carrier,pallets,cost,on_time,hours_late,km
+2026-07-06,BRA,OTT,Lakeshore Logistics,24,1310.50,Y,-0.5,430
+2026-07-06,BRA,OTT,Lakeshore Logistics,17,1295.00,N,3.2,430
+2026-07-07,LAV,QUE,Maple Line Freight,21,780.00,Y,0,250</pre>
+        <div class="row" style="margin-top:8px"><button class="btn ghost" data-copy="tplLoads">Copy loads template</button></div>
+      </details>
+      <details>
+        <summary>Sites file columns</summary>
+        <div class="scroll"><table class="cols" style="margin-top:8px"><thead><tr><th>Column</th><th>Required</th><th>What goes in it</th></tr></thead><tbody>
+          <tr><td>code</td><td>Yes</td><td>Short code used in the loads file (BRA)</td></tr>
+          <tr><td>name</td><td>Yes</td><td>Name shown on the map (Brampton)</td></tr>
+          <tr><td>type</td><td>Yes</td><td>DC, Cross-dock or Service centre</td></tr>
+          <tr><td>lat, lon</td><td>Yes</td><td>Coordinates in decimal degrees (43.73, -79.76). Search the city on Google Maps, right-click, copy the numbers</td></tr>
+          <tr><td>trailer_pool</td><td>No</td><td>Owned trailers at a DC. If blank, the peak planner estimates one</td></tr>
+        </tbody></table></div>
+        <pre class="tpl" id="tplSites">code,name,type,lat,lon,trailer_pool
+BRA,Brampton,DC,43.73,-79.76,52
+LAV,Laval,DC,45.57,-73.69,26
+OTT,Ottawa,Service centre,45.42,-75.70,
+QUE,Quebec City,Service centre,46.81,-71.21,</pre>
+        <div class="row" style="margin-top:8px"><button class="btn ghost" data-copy="tplSites">Copy sites template</button></div>
+      </details>
+      <p class="muted" style="font-size:12px;margin:0">Tip: copy a template, paste it into Excel or Notepad, replace the rows with your own and save as .csv. Your data stays in this browser so it is still here next time you open the page; Back to sample data clears it.</p>
+    </div>
+  </section>
+
+  <p class="foot" id="footer"></p>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script type="application/json" id="geo">__GEO__</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+(() => {
+const SAMPLE = JSON.parse(document.getElementById("data").textContent);
+const G = JSON.parse(document.getElementById("geo").textContent);
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const fmt = (n, d = 0) => (+n).toLocaleString("en-CA", { minimumFractionDigits: d, maximumFractionDigits: d });
+const money = (n, d = 0) => (n < 0 ? "-$" : "$") + fmt(Math.abs(n), d);
+const bigMoney = n => n >= 1e6 ? money(n / 1e6, 2) + "M" : money(n);
+const pct = (n, d = 1) => fmt(n * 100, d) + "%";
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const STORE = "nfm-custom-v1";
+const DAY = 864e5;
+const dayNum = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / DAY;
+const dOf = n => new Date(n * DAY);
+const fD = (n, o = { month: "short", day: "numeric", year: "numeric" }) => dOf(n).toLocaleDateString("en-CA", { timeZone: "UTC", ...o });
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const IDX = { week: "pw", month: "pm", quarter: "pq", year: "py" }, SHIFT = { week: 52, month: 12, quarter: 4, year: 1 };
+
+/* projection: same as the build step, so custom sites land on the same map */
+const proj = (window.d3 && d3.geoConicConformal) ? d3.geoConicConformal().parallels([44, 54]).rotate([92, 0])
+  .fitExtent([[20, 20], [G.w - 20, G.h - 20]], { type: "Feature", geometry: { type: "MultiPoint", coordinates: [[-127, 42], [-58, 42], [-127, 57], [-58, 57]] } }) : null;
+
+/* ---------- model ---------- */
+let M, R; // current model, current filtered rows
+function haversine(a, b) { const Rr = 6371, r = x => x * Math.PI / 180; const dLa = r(b.lat - a.lat), dLo = r(b.lon - a.lon);
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLo / 2) ** 2; return 2 * Rr * Math.asin(Math.sqrt(h)); }
+function build({ nodes, loads, cap, laneKm, pool, label, isSample }) {
+  Object.entries(nodes).forEach(([k, n]) => { if (proj) { const p = proj([n.lon, n.lat]); n.x = +p[0].toFixed(1); n.y = +p[1].toFixed(1); } else if (G.nodes[k]) { n.x = G.nodes[k].x; n.y = G.nodes[k].y; } else { n.x = -99; n.y = -99; } });
+  let d0 = Infinity, d1 = -Infinity;
+  loads.forEach(l => { if (l.dn == null) l.dn = dayNum(l.d); if (l.dn < d0) d0 = l.dn; if (l.dn > d1) d1 = l.dn; });
+  const wk0 = d0 - (dOf(d0).getUTCDay() + 6) % 7;
+  const ymd = n => { const d = dOf(n); return [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDay()]; };
+  const [y0, m0] = ymd(d0), [y1, m1] = ymd(d1), cache = new Map(), wds = new Set();
+  loads.forEach(l => { l.k = l.o + "-" + l.t; let c = cache.get(l.dn); if (!c) { c = ymd(l.dn); cache.set(l.dn, c); }
+    l.yr = c[0]; l.mo = c[1]; wds.add(c[2]);
+    l.pw = Math.floor((l.dn - wk0) / 7); l.pm = (c[0] - y0) * 12 + c[1] - m0;
+    l.pq = c[0] * 4 + Math.floor(c[1] / 3) - (y0 * 4 + Math.floor(m0 / 3)); l.py = c[0] - y0; });
+  // periods at each granularity; e is exclusive, days = calendar days covered by the data
+  const P = { week: [], month: [], quarter: [], year: [] };
+  for (let s = wk0; s <= d1; s += 7) P.week.push({ s, e: s + 7, label: "Week of " + fD(s), short: fD(s, { month: "short", day: "numeric" }), yr: dOf(s).getUTCFullYear() });
+  for (let y = y0, m = m0; y < y1 || (y === y1 && m <= m1); m === 11 ? (y++, m = 0) : m++) P.month.push({ s: Date.UTC(y, m, 1) / DAY, e: Date.UTC(y, m + 1, 1) / DAY, label: MON[m] + " " + y, short: MON[m], yr: y, mo: m });
+  for (let y = y0, q = Math.floor(m0 / 3); y < y1 || (y === y1 && q <= Math.floor(m1 / 3)); q === 3 ? (y++, q = 0) : q++) P.quarter.push({ s: Date.UTC(y, q * 3, 1) / DAY, e: Date.UTC(y, q * 3 + 3, 1) / DAY, label: `Q${q + 1} ${y}`, short: `Q${q + 1}`, yr: y });
+  for (let y = y0; y <= y1; y++) P.year.push({ s: Date.UTC(y, 0, 1) / DAY, e: Date.UTC(y + 1, 0, 1) / DAY, label: String(y), short: String(y), yr: y });
+  Object.values(P).forEach(arr => arr.forEach(p => { p.days = Math.max(1, Math.min(p.e, d1 + 1) - Math.max(p.s, d0)); }));
+  P.year.forEach(p => { if (p.e > d1 + 1 && p.s >= d0 - 6) p.label += " YTD"; else if (p.s < d0 - 6 || p.e > d1 + 1) p.label += " (part)"; p.full = p.s >= d0 - 6 && p.e <= d1 + 1; });
+  const laneMap = new Map();
+  loads.forEach(l => { if (!laneMap.has(l.k)) laneMap.set(l.k, { o: l.o, t: l.t, kmSum: 0, kmN: 0 }); const L = laneMap.get(l.k); if (l.km > 0) { L.kmSum += l.km; L.kmN++; } });
+  const lanes = [...laneMap.values()].map(L => { const km = laneKm?.[L.o + "-" + L.t] ?? (L.kmN ? L.kmSum / L.kmN : Math.round(haversine(nodes[L.o], nodes[L.t]) * 1.2));
+    return { o: L.o, t: L.t, km: Math.round(km), transit: Math.max(1, Math.ceil(km / 750)) }; });
+  const carriers = [...new Set(loads.map(l => l.c))].sort();
+  return { nodes, loads, lanes, carriers, cap, d0, d1, P, weeks: (d1 - d0 + 1) / 7, opsDays: Math.max(1, wds.size), pool: pool || {}, label, isSample,
+    hasLate: loads.some(l => l.late != null) };
+}
+function sampleModel() {
+  const nodes = JSON.parse(JSON.stringify(SAMPLE.nodes)), base = dayNum(SAMPLE.meta.start), C = SAMPLE.meta.carriers, Ls = SAMPLE.lanes;
+  const loads = SAMPLE.loads.map(r => ({ dn: base + r[0], o: Ls[r[1]].o, t: Ls[r[1]].t, c: C[r[2]], p: r[3], cost: r[4], late: r[5] / 10, on: r[6] }));
+  const laneKm = Object.fromEntries(Ls.map(l => [l.o + "-" + l.t, l.km]));
+  return build({ nodes, loads, cap: SAMPLE.meta.cap, laneKm, pool: SAMPLE.meta.pool, label: "Sample data: Northline Retail (fictional)", isSample: true });
+}
+
+/* ---------- CSV ---------- */
+function parseCSV(text) {
+  text = text.replace(/^﻿/, "");
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < text.length; i++) { const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true; else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+    else f += c; }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  const clean = rows.filter(r => r.some(x => x.trim() !== ""));
+  if (!clean.length) return { head: [], rows: [] };
+  const head = clean[0].map(h => h.trim().toLowerCase().replace(/[\s\-\/]+/g, "_").replace(/[^a-z0-9_]/g, ""));
+  return { head, rows: clean.slice(1).map(r => Object.fromEntries(head.map((h, i) => [h, (r[i] ?? "").trim()]))) };
+}
+const ALIAS = { origin: ["origin", "from", "orig", "origin_code", "ship_from"], destination: ["destination", "dest", "to", "destination_code", "ship_to"],
+  date: ["date", "ship_date", "pickup_date", "load_date"], carrier: ["carrier", "carrier_name", "scac"], pallets: ["pallets", "pallet_count", "pallet_positions", "pp"],
+  cost: ["cost", "total_cost", "linehaul_cost", "charge", "amount"], on_time: ["on_time", "ontime", "otp", "on_time_yn"], hours_late: ["hours_late", "late_hours", "delay_hours"],
+  km: ["km", "distance_km", "distance", "kms"], code: ["code", "site_code", "id"], name: ["name", "site_name", "city"], type: ["type", "site_type"],
+  lat: ["lat", "latitude"], lon: ["lon", "lng", "long", "longitude"], trailer_pool: ["trailer_pool", "pool", "trailers"] };
+const pick = (r, k) => { for (const a of ALIAS[k]) if (a in r && r[a] !== "") return r[a]; return ""; };
+const has = (head, k) => ALIAS[k].some(a => head.includes(a));
+const num = s => { const v = parseFloat(String(s).replace(/[$,\s]/g, "")); return isFinite(v) ? v : NaN; };
+function toISO(s) { if (/^\d{4}-\d{1,2}-\d{1,2}/.test(s)) { const [y, m, d] = s.slice(0, 10).split("-").map(Number); return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`; }
+  const t = new Date(s); return isNaN(t) ? null : t.toISOString().slice(0, 10); }
+function boolOT(s) { const v = s.toLowerCase(); if (["y", "yes", "1", "true", "on time", "ontime", "t"].includes(v)) return 1; if (["n", "no", "0", "false", "late", "f"].includes(v)) return 0; return null; }
+function siteType(s) { const v = s.toLowerCase(); if (/cross|xd/.test(v)) return "Cross-dock"; if (/\bdc\b|distribution|warehouse|^dc/.test(v)) return "DC"; return "Service centre"; }
+
+function readSites(text) {
+  const { head, rows } = parseCSV(text), errs = [];
+  ["code", "name", "type", "lat", "lon"].forEach(k => { if (!has(head, k)) errs.push(`Sites file is missing the "${k}" column.`); });
+  if (errs.length) return { errs };
+  const nodes = {}, pool = {};
+  rows.forEach((r, i) => { const code = pick(r, "code").toUpperCase(), lat = num(pick(r, "lat")), lon = num(pick(r, "lon"));
+    if (!code) return errs.push(`Sites row ${i + 2}: code is empty.`);
+    if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return errs.push(`Sites row ${i + 2} (${code}): lat/lon must be decimal numbers like 43.73 and -79.76.`);
+    nodes[code] = { name: pick(r, "name") || code, type: siteType(pick(r, "type")), prov: "", lat, lon };
+    const p = num(pick(r, "trailer_pool")); if (isFinite(p) && p > 0) pool[code] = Math.round(p); });
+  return { nodes, pool, errs, n: Object.keys(nodes).length };
+}
+function readLoads(text, nodes) {
+  const { head, rows } = parseCSV(text), errs = [];
+  ["date", "origin", "destination", "carrier", "pallets", "cost"].forEach(k => { if (!has(head, k)) errs.push(`Loads file is missing the "${k}" column.`); });
+  if (!has(head, "on_time") && !has(head, "hours_late")) errs.push('Loads file needs an "on_time" column (Y/N) or an "hours_late" column.');
+  if (errs.length) return { errs, loads: [] };
+  const loads = [], missing = new Set(); let bad = 0;
+  rows.forEach((r, i) => { const line = i + 2, rowErr = m => { bad++; if (errs.length < 8) errs.push(`Loads row ${line}: ${m}`); };
+    const d = toISO(pick(r, "date")); if (!d) return rowErr(`date "${pick(r, "date")}" is not a date. Use YYYY-MM-DD.`);
+    const o = pick(r, "origin").toUpperCase(), t = pick(r, "destination").toUpperCase();
+    if (!o || !t) return rowErr("origin or destination is empty.");
+    if (o === t) return rowErr("origin and destination are the same.");
+    if (nodes && !nodes[o]) missing.add(o); if (nodes && !nodes[t]) missing.add(t);
+    const c = pick(r, "carrier") || "Unknown carrier", p = num(pick(r, "pallets")), cost = num(pick(r, "cost"));
+    if (!(p >= 0)) return rowErr(`pallets "${pick(r, "pallets")}" is not a number.`);
+    if (!(cost >= 0)) return rowErr(`cost "${pick(r, "cost")}" is not a number.`);
+    const lateRaw = pick(r, "hours_late"), late = lateRaw === "" ? null : num(lateRaw);
+    let on = pick(r, "on_time") === "" ? null : boolOT(pick(r, "on_time"));
+    if (on == null && late != null && isFinite(late)) on = late <= 1 ? 1 : 0;
+    if (on == null) return rowErr(`on_time "${pick(r, "on_time")}" should be Y or N.`);
+    const km = num(pick(r, "km"));
+    loads.push({ d, o, t, c, p, cost, on, late: isFinite(late) ? late : null, km: isFinite(km) ? km : 0 }); });
+  if (missing.size) errs.unshift(`These site codes are in the loads file but not in the sites file: ${[...missing].slice(0, 12).join(", ")}${missing.size > 12 ? "…" : ""}`);
+  return { loads, errs, bad, missing };
+}
+
+
+
+/* ---------- formatting helpers ---------- */
+const laneKey = l => l.o + "-" + l.t;
+const nodeName = k => M.nodes[k]?.name || k;
+const status = otp => otp >= 0.92 ? ["good", "On target"] : otp >= 0.85 ? ["warn", "Watch"] : ["crit", "Below 85%"];
+const pill = otp => { const [s, t] = status(otp); return `<span class="pill"><i style="background:var(--${s})"></i>${pct(otp)} <span class="muted" style="font-weight:500">${t}</span></span>`; };
+const tip = $("tip");
+let tipOwner = null;
+function showTip(html, e, wide) { tip.innerHTML = html; tip.className = wide ? "wide" : ""; tip.style.opacity = 1; moveTip(e); }
+function moveTip(e) { const pad = 14, r = tip.getBoundingClientRect(); let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - pad; if (y + r.height > innerHeight - 8) y = e.clientY - r.height - pad;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px"; }
+function showTipAt(el, html, wide) { tip.innerHTML = html; tip.className = wide ? "wide" : ""; tip.style.opacity = 1; const b = el.getBoundingClientRect(), r = tip.getBoundingClientRect();
+  let x = Math.min(b.left, innerWidth - r.width - 8), y = b.bottom + 6; if (y + r.height > innerHeight - 8) y = Math.max(8, b.top - r.height - 6);
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = y + "px"; }
+function hideTip() { tip.style.opacity = 0; tipOwner = null; }
+function bindTip(el, html, wide) { const h = () => typeof html === "function" ? html() : html;
+  el.addEventListener("pointerenter", e => { if (e.pointerType === "touch") return; tipOwner = el; showTip(h(), e, wide); });
+  el.addEventListener("pointermove", e => { if (e.pointerType !== "touch") moveTip(e); });
+  el.addEventListener("pointerleave", e => { if (e.pointerType !== "touch") hideTip(); });
+  el.addEventListener("focus", () => { tipOwner = el; showTipAt(el, h(), wide); });
+  el.addEventListener("blur", hideTip);
+  el.addEventListener("click", e => { if (e.pointerType === "touch" || e.detail === 0) { if (tipOwner === el && tip.style.opacity === "1") hideTip(); else { tipOwner = el; showTipAt(el, h(), wide); } } });
+}
+document.addEventListener("pointerdown", e => { if (tipOwner && !tipOwner.contains(e.target)) hideTip(); });
+addEventListener("scroll", () => { if (tipOwner && document.activeElement !== tipOwner) hideTip(); }, { passive: true });
+function agg(rows) {
+  rows = rows || [];
+  const n = rows.length; let on = 0, pal = 0, cost = 0, lateN = 0, lateS = 0, lateK = 0;
+  for (const l of rows) { on += l.on; pal += l.p; cost += l.cost; if (!l.on) { lateN++; if (l.late != null) { lateS += l.late; lateK++; } } }
+  return { n, otp: n ? on / n : 0, fill: n ? pal / (n * M.cap) : 0, cost, cpl: n ? cost / n : 0, cpp: pal ? cost / pal : 0, pal, lateN, lateH: lateK ? lateS / lateK : null };
+}
+function groupBy(rows, key) { const m = new Map(); rows.forEach(r => { const k = key(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); }); return m; }
+const svgEl = (W, H, label) => { const s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", `0 0 ${W} ${H}`); s.style.width = "100%"; s.style.height = "auto"; s.setAttribute("role", "img"); s.setAttribute("aria-label", label); return s; };
+const hbar = (x, y, w, h) => w <= 0 ? "" : `<path d="M${x},${y} h${Math.max(0, w - 4)} a4,4 0 0 1 4,4 v${h - 8} a4,4 0 0 1 -4,4 h-${Math.max(0, w - 4)} z"`;
+/* change vs last year: kind "pts" for rates, "pct" for money and volumes; better = 1 higher is better, -1 lower is better, 0 neutral */
+function delta(cur, prev, kind, better, suffix = "") {
+  if (prev == null || !isFinite(prev) || (kind === "pct" && !prev)) return "";
+  const d = kind === "pts" ? (cur - prev) * 100 : (cur / prev - 1) * 100; if (!isFinite(d)) return "";
+  const r = Math.round(d * 10) / 10, up = r > 0, down = r < 0;
+  const col = !better || (!up && !down) ? "var(--muted)" : ((up ? 1 : -1) === better ? "var(--good)" : "var(--crit)");
+  const word = !better || (!up && !down) ? "" : ((up ? 1 : -1) === better ? "better" : "worse");
+  return `<span class="delta" ${word ? `aria-label="${fmt(Math.abs(r), 1)}${kind === "pts" ? " points" : " percent"} ${up ? "up" : "down"}, ${word}"` : ""}><i style="color:${col}">${up ? "▲" : down ? "▼" : "■"}</i>${fmt(Math.abs(r), 1)}${kind === "pts" ? " pts" : "%"}${suffix}</span>`;
+}
+
+/* ---------- filters and periods ---------- */
+const F = { origin: "All", carrier: "All", g: "month", from: 0, to: 0 };
+const per = (g = F.g) => M.P[g];
+const rangeWeeks = (g = F.g, a = F.from, b = F.to) => { const P = M.P[g]; return Math.max(1 / 7, (Math.min(P[b].e, M.d1 + 1) - Math.max(P[a].s, M.d0)) / 7); };
+const prior = () => { const s = SHIFT[F.g], a = F.from - s, b = F.to - s; return a >= 0 ? { a, b } : null; };
+function rangeLabel(g = F.g, a = F.from, b = F.to) { const P = M.P[g];
+  if (g === "week") { const s = Math.max(P[a].s, M.d0), e = Math.min(P[b].e - 1, M.d1); return a === b ? P[a].label : `${fD(s)} to ${fD(e)}`; }
+  return a === b ? P[a].label : `${P[a].label} to ${P[b].label}`; }
+const matchOC = l => (F.origin === "All" || l.o === F.origin) && (F.carrier === "All" || l.c === F.carrier);
+function fillSelect(el, opts, val) { el.innerHTML = opts.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join(""); el.value = val; }
+function setupFilters() {
+  F.origin = "All"; F.carrier = "All";
+  const origins = [...new Set(M.lanes.map(l => l.o))].sort((a, b) => (M.nodes[a].type === "DC" ? 0 : 1) - (M.nodes[b].type === "DC" ? 0 : 1) || nodeName(a).localeCompare(nodeName(b)));
+  fillSelect($("fOrigin"), [["All", "All origins"], ...origins.map(k => [k, nodeName(k) + " (" + M.nodes[k].type + ")"])], "All");
+  fillSelect($("fCarrier"), [["All", "All carriers"], ...M.carriers.map(c => [c, c])], "All");
+  const span = M.d1 - M.d0 + 1;
+  F.g = span > 400 ? "month" : span > 120 ? "week" : "week";
+  preset(span > 400 ? "latest" : "all", true);
+}
+function syncPeriodControls() {
+  const P = per(), opts = P.map((p, i) => [i, p.label]);
+  fillSelect($("fFrom"), opts, F.from); fillSelect($("fTo"), opts, F.to);
+  document.querySelectorAll("#gSeg button").forEach(b => b.setAttribute("aria-checked", b.dataset.g === F.g));
+  const len = F.to - F.from + 1; $("prevP").disabled = F.from === 0; $("nextP").disabled = F.to === P.length - 1;
+  const unit = { week: "week", month: "month", quarter: "quarter", year: "year" }[F.g];
+  $("prevP").title = $("prevP").ariaLabel = `Back ${len} ${unit}${len > 1 ? "s" : ""}`; $("nextP").title = $("nextP").ariaLabel = `Forward ${len} ${unit}${len > 1 ? "s" : ""}`;
+}
+function spanToRange(g, s, e) { const P = M.P[g]; let a = P.findIndex(p => p.e > s); if (a < 0) a = 0; let b = a; for (let i = a; i < P.length; i++) if (P[i].s < e) b = i; return [a, b]; }
+function preset(kind, silent) {
+  const P = per(), last = P.length - 1;
+  if (kind === "all") { F.from = 0; F.to = last; }
+  else if (kind === "latest") { if (F.g === "year") { F.from = F.to = last; } else { F.to = last; F.from = Math.max(0, last - SHIFT[F.g] + 1); } }
+  else if (kind === "lastfull") { const full = M.P.year.filter(p => p.full).at(-1); if (!full) return preset("all", silent); [F.from, F.to] = spanToRange(F.g, full.s, full.e); }
+  syncPeriodControls(); if (!silent) renderFiltered();
+}
+document.querySelectorAll("#gSeg button").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.g === F.g) return; const P0 = per(), s = P0[F.from].s, e = P0[F.to].e; F.g = b.dataset.g; [F.from, F.to] = spanToRange(F.g, s, e);
+  syncPeriodControls(); renderFiltered(); }));
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => preset(b.dataset.preset)));
+$("prevP").addEventListener("click", () => { const len = F.to - F.from + 1; F.from = Math.max(0, F.from - len); F.to = F.from + len - 1; syncPeriodControls(); renderFiltered(); });
+$("nextP").addEventListener("click", () => { const len = F.to - F.from + 1, last = per().length - 1; F.to = Math.min(last, F.to + len); F.from = Math.max(0, F.to - len + 1); syncPeriodControls(); renderFiltered(); });
+[["fOrigin", "origin"], ["fCarrier", "carrier"], ["fFrom", "from"], ["fTo", "to"]].forEach(([id, k]) => $(id).addEventListener("change", e => {
+  F[k] = k === "from" || k === "to" ? +e.target.value : e.target.value;
+  if (F.from > F.to) { if (k === "from") F.to = F.from; else F.from = F.to; }
+  syncPeriodControls(); renderFiltered();
+}));
+
+/* ---------- header text ---------- */
+function renderHeader() {
+  const dcs = Object.values(M.nodes).filter(n => n.type === "DC").length, sites = Object.keys(M.nodes).length;
+  $("eyebrow").textContent = `First-mile linehaul · ${fD(M.d0, { month: "short", year: "numeric" })} to ${fD(M.d1, { month: "short", year: "numeric" })}`;
+  $("subtitle").textContent = M.isSample
+    ? `On-time performance, lane cost, trailer fill and peak capacity for a fictional retailer moving freight from ${dcs} DCs to cross-docks and service centres across Canada, with ${fmt(M.weeks / 52, 1)} years of history to compare year over year. Built as a portfolio project; all data is synthetic.`
+    : `On-time performance, lane cost, trailer fill and peak capacity for your network: ${dcs} DC${dcs === 1 ? "" : "s"} and ${sites} sites in total.`;
+  $("banner").innerHTML = M.isSample
+    ? `<span><b>Showing sample data.</b> Northline Retail is fictional: ${fmt(M.loads.length)} loads, ${M.lanes.length} lanes, ${M.carriers.length} carriers, ${fD(M.d0)} to ${fD(M.d1)}.</span><button class="btn link" id="goData">Use your own data</button>`
+    : `<span><b>Showing your data.</b> ${fmt(M.loads.length)} loads, ${M.lanes.length} lanes, ${M.carriers.length} carriers, ${fD(M.d0)} to ${fD(M.d1)}.</span><button class="btn link" id="goData">Change data</button>`;
+  $("goData").addEventListener("click", () => selectTab($("t-data"), true));
+  $("fillNote").textContent = `Click a column to sort. Fill = pallets loaded ÷ ${M.cap} pallet positions per trailer. "vs LY" compares with the same period one year earlier.`;
+  $("footer").textContent = M.isSample
+    ? "Northline Retail and every number here are fictional, generated to resemble a Canadian first-mile network. Distances are approximate road km. Built by Vijay Kanase with Python for the data and plain JavaScript and SVG for the app."
+    : "Distances come from your km column where given, otherwise straight-line distance × 1.2. Your data is read in this browser only. Built by Vijay Kanase.";
+}
+function renderRangeTag() {
+  $("rangeTag").textContent = `${rangeLabel()} · ` + (R.p ? `vs ${rangeLabel(F.g, R.p.a, R.p.b)}` : "no prior-year data to compare");
+}
+
+/* ---------- KPIs ---------- */
+const DEF = {
+  loads: { t: "Loads", what: "Truckloads shipped in the selected period. One load is one loaded trailer leaving an origin.",
+    logic: "Counted straight from the load records. Per week divides by the calendar weeks in the period, so a 4-week month, a 13-week quarter and a part year compare fairly.",
+    f: ["Loads = count of load records", "Loads per week = loads ÷ weeks in period"] },
+  otp: { t: "On-time %", what: "Share of loads delivered inside the appointment window at the destination.",
+    logic: "A load is late when it arrives more than 1 hour after its appointment. Early or up to 1 hour late counts as on time. The network target is 92%.",
+    f: ["On-time % = on-time loads ÷ total loads × 100"] },
+  fill: { t: "Avg trailer fill", what: "How full the trailers leave, measured in pallet positions.",
+    logic: "A 53' trailer holds 26 pallets floor-loaded. Thin lanes that ship every day drag fill down; consolidating departures and better load building push it up.",
+    f: ["Fill % = Σ pallets ÷ (loads × 26) × 100"] },
+  spend: { t: "Linehaul spend", what: "Total carrier cost for the loads in the period, fuel surcharge included.",
+    logic: "Each load costs the carrier's rate × lane km (or its minimum charge, whichever is higher) plus the fuel surcharge. Spend rises with volume, so the change vs last year uses spend per week.",
+    f: ["Spend = Σ load cost", "Load cost = max(rate × km, minimum) × (1 + fuel %)"] },
+  cpl: { t: "Cost per load", what: "Average cost of one truckload.",
+    logic: "Moves with lane length, carrier rates and fuel. A shift in mix toward long lanes raises it even when rates hold, so read it next to cost per pallet.",
+    f: ["Cost per load = Σ cost ÷ loads"] },
+  cpp: { t: "Cost per pallet", what: "Average cost to move one pallet.",
+    logic: "The best single efficiency measure: it falls when trailers leave fuller, even if each load costs more.",
+    f: ["Cost per pallet = Σ cost ÷ Σ pallets"] },
+};
+let KP = null;
+const info = `<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="7.2" y="7" width="1.6" height="5" rx=".8" fill="currentColor"/><circle cx="8" cy="4.8" r="1" fill="currentColor"/></svg>`;
+function kpiTip(key) {
+  const d = DEF[key], { a, b, wk, wkP } = KP;
+  const calc = { loads: `${fmt(a.n)} loads ÷ ${fmt(wk, 1)} weeks = ${fmt(a.n / wk, 1)} per week`,
+    otp: `${fmt(a.n - a.lateN)} on time ÷ ${fmt(a.n)} loads = ${pct(a.otp)}`,
+    fill: `${fmt(a.pal)} pallets ÷ (${fmt(a.n)} × ${M.cap}) = ${pct(a.fill)}`,
+    spend: `Σ cost of ${fmt(a.n)} loads = ${money(a.cost)}<br>${money(a.cost)} ÷ ${fmt(wk, 1)} weeks = ${money(a.cost / wk)} per week`,
+    cpl: `${money(a.cost)} ÷ ${fmt(a.n)} loads = ${money(a.cpl)}`,
+    cpp: `${money(a.cost)} ÷ ${fmt(a.pal)} pallets = ${money(a.cpp, 2)}` }[key];
+  const val = (x, w) => ({ loads: fmt(x.n / w, 1) + " loads/wk", otp: pct(x.otp), fill: pct(x.fill), spend: money(x.cost / w) + "/wk", cpl: money(x.cpl), cpp: money(x.cpp, 2) }[key]);
+  const ly = b ? `${esc(rangeLabel(F.g, R.p.a, R.p.b))}: ${val(b, wkP)}. This period: ${val(a, wk)}.` : "The data has no matching period one year earlier, so there is no comparison.";
+  return `<div class="tt-h">${d.t}</div>${d.what}<div class="tt-k">Logic</div>${d.logic}<div class="tt-k">Formula</div><div class="tt-f">${d.f.join("<br>")}</div>
+    <div class="tt-k">This period (${esc(rangeLabel())})</div><div class="tt-f">${calc}</div><div class="tt-k">Vs same period last year</div>${ly}`;
+}
+function renderKPIs() {
+  const a = agg(R.cur), b = R.p && R.prev.length ? agg(R.prev) : null, wk = rangeWeeks(), wkP = R.p ? rangeWeeks(F.g, R.p.a, R.p.b) : 1;
+  KP = { a, b, wk, wkP };
+  const items = [
+    ["loads", "Loads", fmt(a.n), fmt(a.n / wk, 0) + " per week", b && delta(a.n / wk, b.n / wkP, "pct", 0, " per wk")],
+    ["otp", "On-time", pct(a.otp), fmt(a.lateN) + " late loads", b && delta(a.otp, b.otp, "pts", 1)],
+    ["fill", "Avg trailer fill", pct(a.fill), `of ${M.cap} pallet positions`, b && delta(a.fill, b.fill, "pts", 1)],
+    ["spend", "Linehaul spend", bigMoney(a.cost), money(a.cost / wk) + " per week", b && delta(a.cost / wk, b.cost / wkP, "pct", 0, " per wk")],
+    ["cpl", "Cost per load", money(a.cpl), "incl. fuel surcharge", b && delta(a.cpl, b.cpl, "pct", -1)],
+    ["cpp", "Cost per pallet", money(a.cpp, 2), fmt(a.n ? a.pal / a.n : 0, 1) + " pallets per load", b && delta(a.cpp, b.cpp, "pct", -1)],
+  ];
+  $("kpis").innerHTML = items.map(([k, t, v, s, d]) => `<div class="kpi" tabindex="0" data-def="${k}" aria-label="${t}: ${v}. Press for definition."><span class="eyebrow">${t}${info}</span><span class="v">${v}</span><span class="s">${s}</span><span class="delta">${d ? d + " vs last year" : "no prior-year data"}</span></div>`).join("");
+  $("kpis").querySelectorAll(".kpi").forEach(el => bindTip(el, () => kpiTip(el.dataset.def), true));
+}
+
+/* ---------- map ---------- */
+let selLane = null;
+const LABEL_POS = { LDN: "left", OTT: "aboveleft", BRA: "belowright", LAV: "belowright", QUE: "above", SUD: "left", HFX: "below", MON: "above", DEL: "below", REG: "below", CGY: "right", EDM: "above", KEL: "above", SAS: "above", WPG: "above", TBY: "above" };
+function arcPath(a, b) { const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+  const bend = Math.min(60, len * 0.18), nx = -dy / len, ny = dx / len; return `M${a.x},${a.y} Q${mx + nx * bend},${my + ny * bend} ${b.x},${b.y}`; }
+let mapW = 0;
+function renderMap() {
+  const rows = R.cur, byLane = groupBy(rows, r => r.k), prevBy = R.prev ? groupBy(R.prev, r => r.k) : null, maxN = Math.max(1, ...[...byLane.values()].map(v => v.length));
+  const used = new Set(M.lanes.flatMap(l => [l.o, l.t]));
+  const pts = [...used].map(k => M.nodes[k]).filter(n => n.x > -50);
+  let vx = 0, vy = 0, vw = G.w, vh = G.h;
+  if (pts.length) { const xs = pts.map(n => n.x), ys = pts.map(n => n.y), pad = 80;
+    let x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad;
+    let w = Math.max(x1 - x0, 320), h = Math.max(y1 - y0, 320 * G.h / G.w); const ar = G.w / G.h;
+    if (w / h > ar) h = w / ar; else w = h * ar;
+    if (w < G.w) { const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2; vw = w; vh = h;
+      vx = Math.min(Math.max(cx - w / 2, 0), G.w - w); vy = Math.min(Math.max(cy - h / 2, 0), G.h - h); } }
+  // u = map units per screen pixel, so lines and labels keep a readable on-screen size at any width or zoom
+  mapW = $("map").clientWidth; const px = mapW ? mapW / vw : 0.74, u = 1 / Math.max(px, 0.5), k = vw / G.w;
+  const svg = svgEl(vw, vh, "Map of the first-mile network with lanes coloured by on-time performance");
+  svg.setAttribute("viewBox", `${vx} ${vy} ${vw} ${vh}`); svg.style.display = "block";
+  svg.innerHTML = `<rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="var(--surface)"/><path d="${G.usa}" fill="var(--land-2)" stroke="var(--coast)" stroke-width="${.6 * k}"/><path d="${G.canada}" fill="var(--land)" stroke="var(--coast)" stroke-width="${.8 * k}"/>`;
+  const gl = document.createElementNS(NS, "g"); svg.appendChild(gl);
+  const order = [...M.lanes].sort((x, y) => (byLane.get(laneKey(y))?.length || 0) - (byLane.get(laneKey(x))?.length || 0));
+  order.forEach(L => {
+    const key = laneKey(L), r = byLane.get(key) || [], a = agg(r), d = arcPath(M.nodes[L.o], M.nodes[L.t]);
+    const pr = prevBy?.get(key), pa = pr && pr.length ? agg(pr) : null;
+    const sw = (r.length ? 3 + 10 * r.length / maxN : 2) * u;
+    if (key === selLane) gl.insertAdjacentHTML("beforeend", `<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="${(sw + 6 * u).toFixed(1)}" stroke-linecap="round" opacity=".3"/>`);
+    gl.insertAdjacentHTML("beforeend", `<path d="${d}" fill="none" stroke="${r.length ? `var(--${status(a.otp)[0]})` : "var(--bar-soft)"}" stroke-width="${sw.toFixed(1)}" stroke-linecap="round" ${r.length ? "" : `stroke-dasharray="${4 * u} ${4 * u}"`} opacity="${key === selLane ? 1 : .9}"/>`);
+    const hit = document.createElementNS(NS, "path"); hit.setAttribute("d", d); hit.setAttribute("fill", "none"); hit.setAttribute("stroke", "transparent"); hit.setAttribute("stroke-width", Math.max(sw, 24 * u));
+    hit.style.cursor = "pointer"; hit.setAttribute("tabindex", 0); hit.setAttribute("role", "button");
+    hit.setAttribute("aria-label", `${nodeName(L.o)} to ${nodeName(L.t)}, ${r.length} loads, on-time ${pct(a.otp)}`);
+    bindTip(hit, () => `<b>${esc(nodeName(L.o))} → ${esc(nodeName(L.t))}</b><br>${fmt(L.km)} km · ${fmt(r.length)} loads${r.length ? `<br>On-time ${pct(a.otp)}${pa ? " " + delta(a.otp, pa.otp, "pts", 1, " vs LY") : ""}<br>Fill ${pct(a.fill, 0)}${pa ? " " + delta(a.fill, pa.fill, "pts", 1, " vs LY") : ""}<br>${money(a.cpl)} per load` : "<br>No loads in this period"}`);
+    const go = () => { selLane = key; renderMap(); renderDetail(); };
+    hit.addEventListener("click", go); hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    gl.appendChild(hit);
+  });
+  Object.entries(M.nodes).filter(([c]) => used.has(c)).forEach(([c, n]) => {
+    const t = n.type, a = 8 * u, b = 6.5 * u, isDC = t === "DC";
+    const s = isDC ? `<rect x="${n.x - a}" y="${n.y - a}" width="${2 * a}" height="${2 * a}" fill="var(--ink)" stroke="var(--surface)" stroke-width="${2.5 * u}"/>`
+      : t === "Cross-dock" ? `<rect x="${n.x - b}" y="${n.y - b}" width="${2 * b}" height="${2 * b}" transform="rotate(45 ${n.x} ${n.y})" fill="var(--ink)" stroke="var(--surface)" stroke-width="${2.5 * u}"/>`
+      : `<circle cx="${n.x}" cy="${n.y}" r="${6 * u}" fill="var(--surface)" stroke="var(--ink)" stroke-width="${2.5 * u}"/>`;
+    const pos = (M.isSample && LABEL_POS[c]) || "above", fs = (isDC ? 15 : 13) * u;
+    const [tx, ty, anchor] = pos === "below" ? [n.x, n.y + 12 * u + fs * .8, "middle"] : pos === "left" ? [n.x - 12 * u, n.y + fs * .35, "end"] : pos === "right" ? [n.x + 12 * u, n.y + fs * .35, "start"] : pos === "belowright" ? [n.x + 4 * u, n.y + 12 * u + fs * .8, "start"] : pos === "aboveleft" ? [n.x - 2 * u, n.y - 12 * u, "end"] : [n.x, n.y - 12 * u, "middle"];
+    svg.insertAdjacentHTML("beforeend", `<g>${s}<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" font-size="${fs.toFixed(1)}" font-weight="${isDC ? 700 : 600}" paint-order="stroke" stroke="var(--surface)" stroke-width="${(4 * u).toFixed(1)}" stroke-linejoin="round">${esc(n.name)}</text></g>`);
+  });
+  $("map").replaceChildren(svg);
+}
+function renderDetail() {
+  const L = M.lanes.find(l => laneKey(l) === selLane) || M.lanes[0]; selLane = laneKey(L);
+  const rows = R.cur.filter(r => r.k === selLane), a = agg(rows);
+  const pr = R.prev ? R.prev.filter(r => r.k === selLane) : [], pa = pr.length ? agg(pr) : null;
+  const byC = [...groupBy(rows, r => r.c)].map(([c, v]) => [c, agg(v)]).sort((x, y) => y[1].n - x[1].n);
+  const best = byC.filter(x => x[1].n >= 5).sort((x, y) => y[1].otp - x[1].otp)[0];
+  const d = (x, y, kind, bt) => pa ? " " + delta(x, y, kind, bt, " vs LY") : "";
+  $("laneDetail").innerHTML = `<div class="eyebrow">Selected lane · ${esc(rangeLabel())}</div><h2>${esc(nodeName(L.o))} → ${esc(nodeName(L.t))}</h2>
+   <p class="muted" style="margin:2px 0 0">${M.nodes[L.o].type} to ${M.nodes[L.t].type.toLowerCase()} · ${fmt(L.km)} km · ${L.transit}-day transit</p>
+   ${rows.length ? `<dl>
+     <dt>Loads</dt><dd>${fmt(a.n)}${pa ? " " + delta(a.n / rangeWeeks(), pa.n / rangeWeeks(F.g, R.p.a, R.p.b), "pct", 0, " /wk vs LY") : ""}</dd>
+     <dt>On-time</dt><dd>${pill(a.otp)}${d(a.otp, pa?.otp, "pts", 1)}</dd>
+     <dt>Avg trailer fill</dt><dd>${pct(a.fill, 0)}${d(a.fill, pa?.fill, "pts", 1)}</dd>
+     <dt>Cost per load</dt><dd>${money(a.cpl)}${d(a.cpl, pa?.cpl, "pct", -1)}</dd><dt>Cost per pallet</dt><dd>${money(a.cpp, 2)}${d(a.cpp, pa?.cpp, "pct", -1)}</dd>
+     <dt>Late loads</dt><dd>${a.lateN}${a.lateN && a.lateH != null ? " · avg " + fmt(a.lateH, 1) + " h late" : ""}</dd></dl>
+   <h3 style="margin-top:14px">By carrier</h3>
+   <div class="scroll"><table style="margin-top:4px"><thead><tr><th>Carrier</th><th>Loads</th><th>On-time</th><th>$/load</th></tr></thead><tbody>
+   ${byC.map(([c, x]) => `<tr><td>${esc(c)}</td><td>${fmt(x.n)}</td><td>${pct(x.otp, 0)}</td><td>${money(x.cpl)}</td></tr>`).join("")}</tbody></table></div>
+   ${best && byC.length > 1 ? `<p class="insight" style="margin-top:12px">${esc(best[0])} is the most reliable carrier on this lane at ${pct(best[1].otp, 0)} on-time.</p>` : ""}`
+   : `<p class="muted" style="margin-top:10px">No loads on this lane in this period.</p>`}`;
+}
+
+/* ---------- trend and year-over-year ---------- */
+const MET = { otp: { n: "On-time %", f: v => pct(v), kind: "pts", better: 1 }, fill: { n: "Avg trailer fill", f: v => pct(v), kind: "pts", better: 1 },
+  cpl: { n: "Cost per load", f: v => money(v), kind: "pct", better: -1 }, cpp: { n: "Cost per pallet", f: v => money(v, 2), kind: "pct", better: -1 },
+  lpw: { n: "Loads per week", f: v => fmt(v, 1), kind: "pct", better: 0 } };
+const metVal = (rows, days, m) => { const a = agg(rows); return m === "lpw" ? a.n / (days / 7) : a[m]; };
+function niceScale(lo, hi, n = 5) {
+  if (!(hi > lo)) { const d = Math.abs(hi) * 0.05 || 1; lo -= d; hi += d; }
+  const raw = (hi - lo) / n, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => raw <= s);
+  const a = Math.floor(lo / step) * step, b = Math.ceil(hi / step) * step, ticks = []; for (let v = a; v <= b + step / 2; v += step) ticks.push(+v.toPrecision(10));
+  return { lo: a, hi: b, ticks, step };
+}
+const tickFmt = (m, v, step) => (m === "otp" || m === "fill") ? fmt(v * 100, Number.isInteger(+(step * 100).toFixed(6)) ? 0 : 1) + "%" : (m === "lpw" ? fmt(v) : money(v, step < 1 ? 2 : 0));
+let trendW = 0;
+function renderTrend() {
+  const m = $("mSel").value, P = per(), idx = IDX[F.g], by = groupBy(M.loads.filter(matchOC), l => l[idx]), N = P.length;
+  const pts = P.map((p, i) => { const v = by.get(i); return v && v.length ? { i, p, v: metVal(v, p.days, m), n: v.length } : null; }).filter(Boolean);
+  const unit = { week: "week", month: "month", quarter: "quarter", year: "year" }[F.g];
+  $("trendTitle").textContent = `${MET[m].n} by ${unit}`;
+  $("trendNote").textContent = `Full history. The shaded band is the period you selected. ${m === "otp" ? "Dashed line is the 92% target. " : ""}Click any ${unit} to focus the whole dashboard on it.`;
+  if (!pts.length) { $("trendChart").innerHTML = '<p class="muted">No loads for the current filters.</p>'; return; }
+  trendW = $("trendChart").clientWidth; const W = Math.min(900, Math.max(340, trendW || 900)), H = W < 600 ? 240 : 260, mg = { l: 50, r: W < 600 ? 50 : 64, t: 22, b: 30 }, pw = W - mg.l - mg.r;
+  const vals = pts.map(p => p.v).concat(m === "otp" ? [0.92] : []), lo0 = Math.min(...vals), hi0 = Math.max(...vals), padv = (hi0 - lo0) * 0.08;
+  const sc = niceScale(lo0 - padv, hi0 + padv, 5), y = v => mg.t + (sc.hi - v) / (sc.hi - sc.lo) * (H - mg.t - mg.b);
+  const half = N > 1 ? pw / (N - 1) / 2 : pw / 2, x = i => mg.l + (N === 1 ? pw / 2 : i / (N - 1) * pw);
+  let s = "";
+  const bx0 = Math.max(mg.l - 6, x(F.from) - half), bx1 = Math.min(W - mg.r + 6, x(F.to) + half);
+  s += `<rect x="${bx0}" y="${mg.t - 6}" width="${Math.max(3, bx1 - bx0)}" height="${H - mg.t - mg.b + 6}" fill="var(--band)"/>`;
+  sc.ticks.forEach(v => s += `<line x1="${mg.l}" x2="${W - mg.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${mg.l - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" style="fill:var(--muted)">${tickFmt(m, v, sc.step)}</text>`);
+  if (F.g === "year") P.forEach((p, i) => s += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="12" style="fill:var(--muted)">${esc(p.label)}</text>`);
+  else { const starts = P.map((p, i) => i).filter(i => i === 0 || P[i].yr !== P[i - 1].yr);
+    starts.forEach((i, j) => { const end = (starts[j + 1] ?? N) - 1;
+      if (i > 0) s += `<line x1="${x(i) - half}" x2="${x(i) - half}" y1="${mg.t - 6}" y2="${H - mg.b + 4}" stroke="var(--muted)" stroke-opacity=".35"/>`;
+      s += `<text x="${(x(i) + x(end)) / 2}" y="${H - 8}" text-anchor="middle" font-size="12" font-weight="600" style="fill:var(--muted)">${P[i].yr}</text>`; }); }
+  if (m === "otp") s += `<line x1="${mg.l}" x2="${W - mg.r}" y1="${y(.92)}" y2="${y(.92)}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 5"/><text x="${W - mg.r + 6}" y="${y(.92) + 4}" font-size="11" style="fill:var(--accent-ink)">Target</text>`;
+  let d = "", prevI = -2; pts.forEach(p => { d += (p.i === prevI + 1 ? "L" : "M") + x(p.i).toFixed(1) + "," + y(p.v).toFixed(1); prevI = p.i; });
+  s += `<path d="${d}" fill="none" stroke="var(--bar)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const dots = N <= 60;
+  pts.forEach((p, i) => { const last = i === pts.length - 1, sel = p.i >= F.from && p.i <= F.to;
+    if (dots || last) s += `<circle cx="${x(p.i)}" cy="${y(p.v)}" r="${last ? 5 : sel ? 4 : 3}" fill="var(--bar)" stroke="var(--surface)" stroke-width="2"/>`;
+    if (F.g === "year" || last) s += `<text x="${x(p.i) + (last && F.g !== "year" ? 9 : 0)}" y="${y(p.v) - (last && F.g !== "year" ? -4 : 11)}" text-anchor="${last && F.g !== "year" ? "start" : "middle"}" font-size="12" font-weight="600">${MET[m].f(p.v)}</text>`; });
+  const svg = svgEl(W, H, `${MET[m].n} by ${unit} line chart`); svg.innerHTML = s;
+  const byI = new Map(pts.map(p => [p.i, p]));
+  pts.forEach(p => { const r = document.createElementNS(NS, "rect"); r.setAttribute("x", x(p.i) - half); r.setAttribute("y", mg.t - 6); r.setAttribute("width", Math.max(2 * half, 4)); r.setAttribute("height", H - mg.t - mg.b + 6); r.setAttribute("class", "hit");
+    const ly = byI.get(p.i - SHIFT[F.g]);
+    bindTip(r, () => `<b>${esc(p.p.label)}</b><br>${MET[m].n}: ${MET[m].f(p.v)}<br>${fmt(p.n)} loads${ly ? `<br>${esc(ly.p.label)}: ${MET[m].f(ly.v)} ${delta(p.v, ly.v, MET[m].kind, MET[m].better)}` : ""}<br><span style="opacity:.75">Click to focus on this ${unit}</span>`);
+    r.addEventListener("click", () => { F.from = F.to = p.i; syncPeriodControls(); renderFiltered(); });
+    svg.appendChild(r); });
+  $("trendChart").replaceChildren(svg);
+}
+function yearColors(years) { return Object.fromEntries(years.map((y, j) => [y, `var(--y${4 - (years.length - 1 - j)})`])); }
+function renderYoY() {
+  const m = $("mSel").value, rows = M.loads.filter(matchOC), PM = M.P.month;
+  const years = [...new Set(PM.map(p => p.yr))].slice(-4), col = yearColors(years), by = groupBy(rows, l => l.pm);
+  const series = years.map(yr => ({ yr, pts: PM.map((p, i) => ({ p, i })).filter(o => o.p.yr === yr && by.get(o.i)?.length).map(o => ({ mo: o.p.mo, v: metVal(by.get(o.i), o.p.days, m), n: by.get(o.i).length })) })).filter(sr => sr.pts.length);
+  $("yoyNote").textContent = `${MET[m].n} for each month, one line per year, so seasonality and year-over-year change sit side by side. Change the measure above the trend chart.`;
+  if (!series.length) { $("yoyChart").innerHTML = '<p class="muted">No loads for the current filters.</p>'; $("yoyLegend").innerHTML = ""; return; }
+  $("yoyLegend").innerHTML = series.map(sr => `<span><span class="sw" style="background:${col[sr.yr]};height:4px"></span>${sr.yr}${M.P.year.find(p => p.yr === sr.yr)?.label.includes("YTD") ? " YTD" : ""}</span>`).join("");
+  const W = 460, H = 270, mg = { l: 52, r: 44, t: 12, b: 28 }, pw = W - mg.l - mg.r;
+  const vals = series.flatMap(sr => sr.pts.map(p => p.v)).concat(m === "otp" ? [0.92] : []), lo0 = Math.min(...vals), hi0 = Math.max(...vals), padv = (hi0 - lo0) * 0.08;
+  const sc = niceScale(lo0 - padv, hi0 + padv, 5), y = v => mg.t + (sc.hi - v) / (sc.hi - sc.lo) * (H - mg.t - mg.b), x = mo => mg.l + mo / 11 * pw;
+  let s = "";
+  sc.ticks.forEach(v => s += `<line x1="${mg.l}" x2="${W - mg.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${mg.l - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" style="fill:var(--muted)">${tickFmt(m, v, sc.step)}</text>`);
+  MON.forEach((t, i) => s += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="11" style="fill:var(--muted)">${W < 500 && i % 2 ? "" : t}</text>`);
+  if (m === "otp") s += `<line x1="${mg.l}" x2="${W - mg.r}" y1="${y(.92)}" y2="${y(.92)}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="6 5"/>`;
+  const ends = [];
+  series.forEach(sr => { let d = "", pm = -2; sr.pts.forEach(p => { d += (p.mo === pm + 1 ? "L" : "M") + x(p.mo).toFixed(1) + "," + y(p.v).toFixed(1); pm = p.mo; });
+    const latest = sr.yr === years.at(-1);
+    s += `<path d="${d}" fill="none" stroke="${col[sr.yr]}" stroke-width="${latest ? 2.5 : 2}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    sr.pts.forEach(p => s += `<circle cx="${x(p.mo)}" cy="${y(p.v)}" r="${latest ? 3.5 : 2.5}" fill="${col[sr.yr]}" stroke="var(--surface)" stroke-width="1.5"/>`);
+    const lp = sr.pts.at(-1); ends.push({ yr: sr.yr, x: x(lp.mo) + 7, y: y(lp.v) + 4 }); });
+  ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) if (Math.abs(ends[i].x - ends[i - 1].x) < 30 && ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
+  ends.forEach(e => s += `<text x="${e.x}" y="${e.y}" font-size="11" font-weight="600">${e.yr}</text>`);
+  const svg = svgEl(W, H, `${MET[m].n} by month for each year`); svg.innerHTML = s;
+  MON.forEach((t, mo) => { const r = document.createElementNS(NS, "rect"); r.setAttribute("x", x(mo) - pw / 22); r.setAttribute("y", mg.t); r.setAttribute("width", pw / 11); r.setAttribute("height", H - mg.t - mg.b); r.setAttribute("class", "hit");
+    bindTip(r, () => { const lines = series.map((sr, j) => { const p = sr.pts.find(q => q.mo === mo); if (!p) return ""; const pp = j > 0 ? series[j - 1].pts.find(q => q.mo === mo) : null;
+      return `<br><span style="color:${col[sr.yr]}">■</span> ${sr.yr}: ${MET[m].f(p.v)} ${pp && series[j - 1].yr === sr.yr - 1 ? delta(p.v, pp.v, MET[m].kind, MET[m].better) : ""}`; }).join("");
+      return `<b>${MON[mo]}</b>${lines || "<br>No loads"}`; }); svg.appendChild(r); });
+  $("yoyChart").replaceChildren(svg);
+}
+function renderYoYTable() {
+  const rows = M.loads.filter(matchOC), by = groupBy(rows, l => l.py), PY = M.P.year;
+  const out = PY.map((p, i) => { const cur = by.get(i) || []; if (!cur.length) return null;
+    const a = agg(cur), wk = p.days / 7; let b = null, wkP = null, cmp = "";
+    if (i > 0 && by.get(i - 1)?.length) {
+      const q = PY[i - 1];
+      if (p.e > M.d1 + 1) { const cut = q.s + (M.d1 - p.s); const pv = by.get(i - 1).filter(l => l.dn <= cut && l.dn >= q.s + Math.max(0, M.d0 - p.s)); if (pv.length) { b = agg(pv); wkP = (Math.min(cut, q.e - 1) - Math.max(q.s, M.d0) + 1) / 7; cmp = `Jan to ${fD(cut, { month: "short", day: "numeric" })} ${q.yr}`; } }
+      else { b = agg(by.get(i - 1)); wkP = q.days / 7; cmp = q.label; } }
+    return { p, a, wk, b, wkP, cmp }; }).filter(Boolean);
+  const dd = (c, pv, kind, bt) => pv == null ? "" : "<br>" + delta(c, pv, kind, bt);
+  $("yoyTable").innerHTML = `<thead><tr><th>Year</th><th>Loads/wk</th><th>On-time</th><th>Fill</th><th>$/load</th><th>$/pallet</th></tr></thead><tbody>${out.map(r => `<tr>
+    <td>${esc(r.p.label)}${r.cmp ? `<br><span class="delta">vs ${esc(r.cmp)}</span>` : ""}</td>
+    <td>${fmt(r.a.n / r.wk, 1)}${r.b ? dd(r.a.n / r.wk, r.b.n / r.wkP, "pct", 0) : ""}</td>
+    <td>${pct(r.a.otp)}${r.b ? dd(r.a.otp, r.b.otp, "pts", 1) : ""}</td>
+    <td>${pct(r.a.fill)}${r.b ? dd(r.a.fill, r.b.fill, "pts", 1) : ""}</td>
+    <td>${money(r.a.cpl)}${r.b ? dd(r.a.cpl, r.b.cpl, "pct", -1) : ""}</td>
+    <td>${money(r.a.cpp, 2)}${r.b ? dd(r.a.cpp, r.b.cpp, "pct", -1) : ""}</td>
+    </tr>`).join("")}</tbody>`;
+  const ytd = out.find(r => r.p.e > M.d1 + 1 && r.p.s >= M.d0 - 6);
+  $("yoyTableNote").textContent = `Each year against the one before, for the current origin and carrier filters. Green arrows are improvements.${ytd && ytd.cmp ? ` ${ytd.p.label} runs to ${fD(M.d1, { month: "short", day: "numeric" })}, so it is compared with the same dates of ${ytd.p.yr - 1}.` : ""}`;
+}
+
+/* ---------- sortable table ---------- */
+function table(el, cols, rows, sortKey, dir = -1, opts = {}) {
+  const st = { k: sortKey, d: dir };
+  const draw = () => {
+    const sorted = [...rows].sort((a, b) => { const x = a[st.k] ?? -Infinity, y = b[st.k] ?? -Infinity; return (typeof x === "string" ? x.localeCompare(y) : x - y) * st.d; });
+    el.innerHTML = `<thead><tr>${cols.map(c => `<th scope="col" data-k="${c.k}" ${c.k === st.k ? `aria-sort="${st.d > 0 ? "ascending" : "descending"}"` : ""}>${c.t}</th>`).join("")}</tr></thead>
+      <tbody>${sorted.map(r => `<tr>${cols.map(c => `<td>${c.f ? c.f(r) : esc(r[c.k])}</td>`).join("")}</tr>`).join("")}</tbody>${opts.foot ? `<tfoot>${opts.foot}</tfoot>` : ""}`;
+    el.querySelectorAll("th").forEach(th => th.addEventListener("click", () => { const k = th.dataset.k; st.d = st.k === k ? -st.d : -1; st.k = k; draw(); }));
+  };
+  draw();
+}
+const fillBar = f => `<span class="inbar"><span class="track"><span class="fill ${f < .55 ? "low" : ""}" style="width:${Math.min(100, f * 100)}%"></span></span>${pct(f, 0)}</span>`;
+
+
+
+/* ---------- lanes & carriers ---------- */
+function renderLanes() {
+  const rows = R.cur, by = groupBy(rows, r => r.k), pby = R.prev ? groupBy(R.prev, r => r.k) : new Map();
+  const lr = M.lanes.filter(L => by.has(laneKey(L))).map(L => { const a = agg(by.get(laneKey(L))), pv = pby.get(laneKey(L)), pa = pv && pv.length ? agg(pv) : null;
+    return { lane: `${nodeName(L.o)} → ${nodeName(L.t)}`, km: L.km, ...a, dOtp: pa ? a.otp - pa.otp : null, dFill: pa ? a.fill - pa.fill : null, pa }; });
+  const dcol = (k, t, kind) => ({ k, t, f: r => r[k] == null ? '<span class="muted">-</span>' : delta(r[k] + (kind === "otp" ? r.pa.otp : r.pa.fill), kind === "otp" ? r.pa.otp : r.pa.fill, "pts", 1) });
+  table($("laneTable"), [{ k: "lane", t: "Lane" }, { k: "km", t: "Km", f: r => fmt(r.km) }, { k: "n", t: "Loads", f: r => fmt(r.n) },
+    { k: "otp", t: "On-time", f: r => pill(r.otp) }, dcol("dOtp", "On-time vs LY", "otp"), { k: "fill", t: "Avg fill", f: r => fillBar(r.fill) }, dcol("dFill", "Fill vs LY", "fill"),
+    { k: "cpl", t: "$/load", f: r => money(r.cpl) }, { k: "cpp", t: "$/pallet", f: r => money(r.cpp, 2) }, { k: "lateN", t: "Late", f: r => fmt(r.lateN) }], lr, "otp", 1);
+  const kmOf = Object.fromEntries(M.lanes.map(l => [laneKey(l), l.km]));
+  const pc = R.prev ? groupBy(R.prev, r => r.c) : new Map();
+  const cr = [...groupBy(rows, r => r.c)].map(([c, v]) => { const a = agg(v), km = v.reduce((s, l) => s + kmOf[l.k], 0), pv = pc.get(c), pa = pv && pv.length ? agg(pv) : null;
+    return { c, ...a, cpk: km ? a.cost / km : 0, share: v.length / rows.length, dOtp: pa ? a.otp - pa.otp : null, pa, pShare: pa && R.prev.length ? pv.length / R.prev.length : null }; });
+  table($("carrierTable"), [{ k: "c", t: "Carrier" }, { k: "n", t: "Loads", f: r => fmt(r.n) },
+    { k: "share", t: "Share", f: r => pct(r.share, 0) + (r.pShare != null ? " " + delta(r.share, r.pShare, "pts", 0) : "") },
+    { k: "otp", t: "On-time", f: r => pill(r.otp) }, { k: "dOtp", t: "On-time vs LY", f: r => r.dOtp == null ? '<span class="muted">-</span>' : delta(r.otp, r.pa.otp, "pts", 1) },
+    { k: "lateH", t: "Avg delay (late)", f: r => r.lateH != null ? fmt(r.lateH, 1) + " h" : "-" },
+    { k: "cpk", t: "$/km", f: r => money(r.cpk, 2) }, { k: "cost", t: "Spend", f: r => money(r.cost) }], cr, "otp", 1);
+  if (!lr.length) { $("laneInsight").textContent = "No loads for the current filters."; return; }
+  const worst = [...lr].sort((a, b) => a.otp - b.otp)[0], thin = [...lr].sort((a, b) => a.fill - b.fill)[0], wc = [...cr].sort((a, b) => a.otp - b.otp)[0];
+  const mover = lr.filter(r => r.dOtp != null && r.n >= 20).sort((a, b) => b.dOtp - a.dOtp)[0];
+  $("laneInsight").innerHTML = `<b>Where to look first (${esc(rangeLabel())}):</b> ${esc(worst.lane)} has the lowest on-time rate at ${pct(worst.otp)}. ${cr.length > 1 ? `${esc(wc.c)} is the least reliable carrier at ${pct(wc.otp)}, ` : ""}and ${esc(thin.lane)} runs trailers only ${pct(thin.fill, 0)} full, which the Consolidation tab addresses.${mover && mover.dOtp > 0.005 ? ` Biggest improver vs last year: ${esc(mover.lane)}, up ${fmt(mover.dOtp * 100, 1)} pts on-time.` : ""}`;
+}
+
+/* ---------- planning base: the selected period, all origins and carriers ---------- */
+let laneBase = [], baseRows = [], baseWeeks = 1;
+function computeBase() {
+  baseRows = R.base; baseWeeks = rangeWeeks();
+  const allBy = groupBy(baseRows, r => r.k);
+  laneBase = M.lanes.filter(L => allBy.has(laneKey(L))).map(L => { const a = agg(allBy.get(laneKey(L)));
+    return { L, key: laneKey(L), name: `${nodeName(L.o)} → ${nodeName(L.t)}`, toSC: M.nodes[L.t].type === "Service centre",
+      wkPal: a.pal / baseWeeks, wkLoads: a.n / baseWeeks, fill: a.fill, cpl: a.cpl, km: L.km }; });
+  document.querySelectorAll("[data-basis]").forEach(el => el.innerHTML = `Based on <b>${esc(rangeLabel())}</b> (${fmt(baseWeeks, 0)} weeks of loads, all origins and carriers). Pick another period with the filters above to plan from a different base, for example last year's peak.`);
+  $("consolMethod").textContent = `Method: average weekly pallets per lane over the selected period ÷ departures per week gives pallets per departure; trucks per departure = pallets ÷ (${M.cap} × max fill), rounded up. "Daily" means ${M.opsDays} departures a week. Cost uses each lane's actual average cost per load in the period. Planned fill below 100% leaves headroom for day-to-day swings. Lanes already running fewer departures show little or no saving. CO₂ uses an estimate of about 1 kg CO₂e per loaded truck-km.`;
+}
+function plan(maxFill, minSC, minDC) {
+  return laneBase.map(b => { const minF = Math.min(M.opsDays, b.toSC ? minSC : minDC); let best = null;
+    for (let f = M.opsDays; f >= minF; f--) { const per = b.wkPal / f, trucks = Math.max(1, Math.ceil(per / (M.cap * maxFill))), loads = f * trucks;
+      if (!best || loads < best.loads) best = { f, trucks, loads, newFill: per / (trucks * M.cap) }; }
+    const saveLoads = Math.max(0, b.wkLoads - best.loads);
+    return { ...b, ...best, saveLoads, saveYr: saveLoads * b.cpl * 52, kmYr: saveLoads * b.km * 52 }; });
+}
+
+function renderConsol() {
+  const mf = +$("cFill").value / 100, msc = +$("cMinSC").value, mdc = +$("cMinDC").value;
+  $("oFill").textContent = pct(mf, 0); $("oMinSC").textContent = msc + " per week"; $("oMinDC").textContent = mdc + " per week";
+  const P = plan(mf, msc, mdc), curL = P.reduce((s, p) => s + p.wkLoads, 0), newL = P.reduce((s, p) => s + p.loads, 0);
+  const save = P.reduce((s, p) => s + p.saveYr, 0), km = P.reduce((s, p) => s + p.kmYr, 0), pal = P.reduce((s, p) => s + p.wkPal, 0);
+  $("consolStats").innerHTML = [["Loads per week", fmt(curL, 0) + " → " + fmt(newL, 0), ""], ["Network trailer fill", pct(pal / (curL * M.cap), 0) + " → " + pct(pal / (newL * M.cap), 0), ""],
+    ["Annual savings", money(save), "gold"], ["Truck-km avoided per year", fmt(km), "", "≈ " + fmt(km / 1000, 0) + " t CO₂e"]]
+    .map(([k, v, c, s]) => `<div class="stat ${c}"><div class="eyebrow">${k}</div><div class="v">${v}</div>${s ? `<div class="muted" style="font-size:12px">${s}</div>` : ""}</div>`).join("");
+  table($("consolTable"), [{ k: "name", t: "Lane" }, { k: "wkLoads", t: "Loads/wk now", f: r => fmt(r.wkLoads, 1) }, { k: "fill", t: "Fill now", f: r => fillBar(r.fill) },
+    { k: "f", t: "Departures/wk", f: r => r.f === M.opsDays ? `${r.f} (daily)` : r.f }, { k: "loads", t: "Loads/wk", f: r => r.loads },
+    { k: "newFill", t: "New fill", f: r => fillBar(r.newFill) }, { k: "saveYr", t: "Saves/yr", f: r => r.saveYr > 0 ? money(r.saveYr) : "-" }], P, "saveYr", -1,
+    { foot: `<tr><td>Total</td><td>${fmt(curL, 1)}</td><td></td><td></td><td>${newL}</td><td></td><td>${money(save)}</td></tr>` });
+  const rows = P.filter(p => p.saveYr > 0).sort((a, b) => b.saveYr - a.saveYr);
+  if (!rows.length) { $("consolChart").innerHTML = '<p class="muted">No savings at these settings: every lane already needs the trucks it runs.</p>'; return; }
+  const W = 480, rh = 30, m = { l: 172, r: 64, t: 6 }, H = m.t + rows.length * rh + 6, max = rows[0].saveYr;
+  const svg = svgEl(W, H, "Annual savings by lane");
+  svg.innerHTML = rows.map((r, i) => { const y = m.t + i * rh, w = Math.max(4, (W - m.l - m.r) * r.saveYr / max);
+    return `<text x="${m.l - 8}" y="${y + 19}" text-anchor="end" font-size="12">${esc(r.name)}</text>${hbar(m.l, y + 6, w, 18)} fill="var(--bar)"/><text x="${m.l + w + 6}" y="${y + 19}" font-size="12" font-weight="600">${money(r.saveYr / 1000, 0)}k</text>`; }).join("");
+  rows.forEach((r, i) => { const h = document.createElementNS(NS, "rect"); h.setAttribute("x", 0); h.setAttribute("y", m.t + i * rh); h.setAttribute("width", W); h.setAttribute("height", rh); h.setAttribute("class", "hit");
+    bindTip(h, `<b>${esc(r.name)}</b><br>${r.f} departures/week instead of ${M.opsDays}<br>${fmt(r.wkLoads, 1)} → ${r.loads} loads/week<br>Fill ${pct(r.fill, 0)} → ${pct(r.newFill, 0)}<br>Saves ${money(r.saveYr)}/yr`); svg.appendChild(h); });
+  $("consolChart").replaceChildren(svg);
+}
+
+/* ---------- peak ---------- */
+function renderPeak() {
+  const up = +$("pUp").value / 100, cap = +$("pCap").value / 100, spot = +$("pSpot").value / 100;
+  $("oUp").textContent = "+" + pct(up, 0); $("oCap").textContent = "+" + pct(cap, 0); $("oSpot").textContent = "+" + pct(spot, 0);
+  const dcs = [...new Set(M.lanes.map(l => l.o))].filter(k => M.nodes[k].type === "DC");
+  const need = Object.fromEntries(dcs.map(d => [d, { base: 0, peak: 0 }]));
+  laneBase.forEach(b => { if (!need[b.L.o]) return; const perDay = b.wkLoads / M.opsDays, cycle = 2 * b.L.transit + 1;
+    need[b.L.o].base += perDay * cycle; need[b.L.o].peak += perDay * (1 + up) * cycle; });
+  const estimated = dcs.filter(d => !M.pool[d]);
+  const pool = Object.fromEntries(dcs.map(d => [d, M.pool[d] || Math.ceil(need[d].base * 1.1)]));
+  $("poolNote").textContent = "Bars show trailers needed at peak; the gold tick is the owned pool." + (estimated.length ? ` No pool given for ${estimated.map(nodeName).join(", ")}, so it is estimated at today's need + 10%.` : "");
+  const byC = groupBy(baseRows, r => r.c);
+  const cr = M.carriers.filter(c => byC.has(c)).map(c => { const v = byC.get(c) || [], wk = v.length / baseWeeks, a = agg(v), peak = wk * (1 + up), commit = wk * (1 + cap), over = Math.max(0, peak - commit);
+    return { c, wk, peak, commit, over, extra: over * a.cpl * spot }; });
+  const overTot = cr.reduce((s, r) => s + r.over, 0), extraWk = cr.reduce((s, r) => s + r.extra, 0);
+  const short = dcs.map(d => Math.max(0, Math.ceil(need[d].peak) - pool[d])).reduce((a, b) => a + b, 0);
+  const wkNow = laneBase.reduce((s, b) => s + b.wkLoads, 0);
+  $("peakStats").innerHTML = [["Peak loads per week", fmt(wkNow * (1 + up), 0), "", "from " + fmt(wkNow, 0) + " today"],
+    ["Extra trailers to source", fmt(short), short ? "gold" : "", short ? "rent, lease or switch lanes to drop-and-hook" : "owned pool covers peak"],
+    ["Loads above carrier commitments", fmt(overTot, 0) + "/wk", "", "go to the spot market"],
+    ["Spot premium cost", money(extraWk) + "/wk", "gold", money(extraWk * 8) + " over an 8-week peak"]]
+    .map(([k, v, c, s]) => `<div class="stat ${c}"><div class="eyebrow">${k}</div><div class="v">${v}</div><div class="muted" style="font-size:12px">${s}</div></div>`).join("");
+  if (!dcs.length) { $("peakChart").innerHTML = '<p class="muted">No site of type DC ships loads in this data, so there is no owned trailer pool to plan.</p>'; }
+  else {
+    const W = 460, rh = 52, m = { l: 100, r: 76, t: 8 }, H = m.t + dcs.length * rh + 22;
+    const max = Math.max(...dcs.map(d => Math.max(need[d].peak, pool[d]))) * 1.08, sx = v => m.l + v / max * (W - m.l - m.r);
+    const tickStep = [5, 10, 20, 25, 50, 100, 200, 500].find(s => max / s <= 5) || 1000;
+    let s = ""; for (let v = 0; v <= max; v += tickStep) s += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${m.t}" y2="${H - 20}" stroke="var(--line)"/><text x="${sx(v)}" y="${H - 6}" text-anchor="middle" font-size="11" style="fill:var(--muted)">${v}</text>`;
+    dcs.forEach((d, i) => { const y = m.t + i * rh + 10, n = need[d].peak, w = sx(n) - m.l, over = n > pool[d];
+      s += `<text x="${m.l - 8}" y="${y + 17}" text-anchor="end" font-size="13" font-weight="600">${esc(nodeName(d))}</text>${hbar(m.l, y + 4, w, 22)} fill="${over ? "var(--crit)" : "var(--bar)"}"/>
+        <line x1="${sx(pool[d])}" x2="${sx(pool[d])}" y1="${y - 2}" y2="${y + 32}" stroke="var(--accent)" stroke-width="3"/>
+        <text x="${Math.max(sx(n), sx(pool[d])) + 8}" y="${y + 17}" font-size="12" font-weight="600">${fmt(Math.ceil(n))} / ${pool[d]}</text>`; });
+    const svg = svgEl(W, H, "Trailers needed at peak versus owned pool by DC"); svg.innerHTML = s;
+    dcs.forEach((d, i) => { const h = document.createElementNS(NS, "rect"); h.setAttribute("x", 0); h.setAttribute("y", m.t + i * rh); h.setAttribute("width", W); h.setAttribute("height", rh); h.setAttribute("class", "hit");
+      bindTip(h, `<b>${esc(nodeName(d))} DC</b><br>Needed today: ${fmt(Math.ceil(need[d].base))}<br>Needed at peak: ${fmt(Math.ceil(need[d].peak))}<br>Owned pool: ${pool[d]}${M.pool[d] ? "" : " (estimated)"}<br>${need[d].peak > pool[d] ? "Short " + fmt(Math.ceil(need[d].peak) - pool[d]) : "Covered"}`); svg.appendChild(h); });
+    $("peakChart").replaceChildren(svg);
+  }
+  table($("peakTable"), [{ k: "c", t: "Carrier" }, { k: "wk", t: "Loads/wk now", f: r => fmt(r.wk, 1) }, { k: "peak", t: "At peak", f: r => fmt(r.peak, 1) },
+    { k: "commit", t: "Committed", f: r => fmt(r.commit, 1) }, { k: "over", t: "Over", f: r => r.over > 0 ? `<span class="pill"><i style="background:var(--crit)"></i>${fmt(r.over, 1)}</span>` : "0" },
+    { k: "extra", t: "Spot cost/wk", f: r => r.extra ? money(r.extra) : "-" }], cr, "over", -1);
+}
+
+/* ---------- trailer balance ---------- */
+function renderTrailers() {
+  const wk = Object.fromEntries(laneBase.map(b => [b.key, b.wkLoads]));
+  const rows = laneBase.map(b => { const back = wk[b.L.t + "-" + b.L.o] || 0, backhauled = Math.min(b.wkLoads, back), empty = b.wkLoads - backhauled;
+    return { name: b.name, L: b.L, km: b.km, loaded: b.wkLoads, backhauled, empty, emptyKm: empty * b.km, share: b.wkLoads ? empty / b.wkLoads : 0 }; });
+  const loadedKm = rows.reduce((s, r) => s + r.loaded * r.km, 0), emptyKm = rows.reduce((s, r) => s + r.emptyKm, 0);
+  const sorted = [...rows].sort((a, b) => b.emptyKm - a.emptyKm), top = sorted[0];
+  const pairs = rows.filter(r => r.backhauled > 0 && r.L.o < r.L.t).map(r => `${nodeName(r.L.o)} and ${nodeName(r.L.t)}`);
+  $("trailerInsight").innerHTML = `<b>${pct(emptyKm / (loadedKm + emptyKm || 1), 0)} of trailer-km run empty.</b> ${pairs.length ? `Only ${pairs.join("; ")} send freight both ways.` : "No lane in this data has freight in both directions."} ${top && top.emptyKm ? `${esc(top.name)} brings back about ${fmt(top.emptyKm, 0)} empty km a week, so finding return freight from ${esc(nodeName(top.L.t))} to ${esc(nodeName(top.L.o))} (vendor pickups or a backhaul partner) is the biggest equipment opportunity.` : ""}`;
+  const W = 460, rh = 26, m = { l: 150, r: 70, t: 4 }, H = m.t + sorted.length * rh + 4, max = sorted[0]?.emptyKm || 1;
+  const svg = svgEl(W, H, "Empty return km per week by lane");
+  svg.innerHTML = sorted.map((r, i) => { const y = m.t + i * rh, w = r.emptyKm ? Math.max(4, (W - m.l - m.r) * r.emptyKm / max) : 0;
+    return `<text x="${m.l - 8}" y="${y + 17}" text-anchor="end" font-size="12">${esc(r.name)}</text>${w ? hbar(m.l, y + 5, w, 16) + ' fill="var(--bar)"/>' : ""}<text x="${m.l + w + 6}" y="${y + 17}" font-size="12" font-weight="600">${fmt(r.emptyKm, 0)}</text>`; }).join("");
+  sorted.forEach((r, i) => { const h = document.createElementNS(NS, "rect"); h.setAttribute("x", 0); h.setAttribute("y", m.t + i * rh); h.setAttribute("width", W); h.setAttribute("height", rh); h.setAttribute("class", "hit");
+    bindTip(h, `<b>${esc(r.name)}</b><br>${fmt(r.loaded, 1)} loaded/wk<br>${fmt(r.backhauled, 1)} reused for return freight<br>${fmt(r.empty, 1)} empty returns · ${fmt(r.emptyKm, 0)} km`); svg.appendChild(h); });
+  $("emptyChart").replaceChildren(svg);
+  table($("trailerTable"), [{ k: "name", t: "Lane" }, { k: "loaded", t: "Loaded/wk", f: r => fmt(r.loaded, 1) }, { k: "backhauled", t: "Backhauled", f: r => fmt(r.backhauled, 1) },
+    { k: "share", t: "Empty share", f: r => pct(r.share, 0) }, { k: "emptyKm", t: "Empty km/wk", f: r => fmt(r.emptyKm, 0) }], rows, "emptyKm", -1,
+    { foot: `<tr><td>Total</td><td>${fmt(rows.reduce((s, r) => s + r.loaded, 0), 1)}</td><td>${fmt(rows.reduce((s, r) => s + r.backhauled, 0), 1)}</td><td></td><td>${fmt(emptyKm, 0)}</td></tr>` });
+}
+
+/* ---------- tabs ---------- */
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function selectTab(btn, focus) {
+  tabs.forEach(b => { const on = b === btn; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; $(b.getAttribute("aria-controls")).hidden = !on; });
+  if (focus) btn.focus(); try { localStorage.setItem("nfm-tab", btn.id); } catch (e) {}
+}
+tabs.forEach((b, i) => { b.addEventListener("click", () => selectTab(b));
+  b.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); selectTab(tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length], true); } }); });
+
+/* ---------- render all ---------- */
+function renderFiltered() {
+  const p = prior(), idx = IDX[F.g], cur = [], prev = [], base = [];
+  for (const l of M.loads) { const i = l[idx], oc = matchOC(l);
+    if (i >= F.from && i <= F.to) { base.push(l); if (oc) cur.push(l); }
+    if (p && oc && i >= p.a && i <= p.b) prev.push(l); }
+  R = { cur, prev: p ? prev : null, base, p };
+  renderRangeTag(); renderKPIs(); renderMap(); renderDetail(); renderTrend(); renderYoY(); renderYoYTable(); renderLanes();
+  computeBase(); renderConsol(); renderPeak(); renderTrailers();
+}
+function renderAll() { renderHeader(); setupFilters();
+  ["cMinSC", "cMinDC"].forEach(id => { const el = $(id); el.max = M.opsDays; if (+el.value > M.opsDays) el.value = M.opsDays; });
+  const big = [...groupBy(M.loads, r => r.k)].sort((a, b) => b[1].length - a[1].length)[0]; selLane = big ? big[0] : null;
+  renderFiltered(); }
+$("mSel").addEventListener("change", () => { renderTrend(); renderYoY(); });
+if (window.ResizeObserver) { let raf = 0; new ResizeObserver(() => { const w = $("map").clientWidth; if (w && Math.abs(w - mapW) > 4) { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => R && renderMap()); } }).observe($("map"));
+  let raf2 = 0; new ResizeObserver(() => { const w = $("trendChart").clientWidth; if (w && Math.abs(w - trendW) > 4) { cancelAnimationFrame(raf2); raf2 = requestAnimationFrame(() => R && renderTrend()); } }).observe($("trendChart")); }
+["cFill", "cMinSC", "cMinDC"].forEach(id => $(id).addEventListener("input", renderConsol));
+["pUp", "pCap", "pSpot"].forEach(id => $(id).addEventListener("input", renderPeak));
+
+/* ---------- your data ---------- */
+const files = { loads: null, sites: null };
+function readFile(input, key, info, drop) {
+  const f = input.files[0]; if (!f) { files[key] = null; info.textContent = ""; drop.classList.remove("ok"); updateBtn(); return; }
+  const rd = new FileReader();
+  rd.onload = () => { files[key] = rd.result; const n = parseCSV(rd.result).rows.length; info.textContent = `${f.name} · ${fmt(n)} rows`; drop.classList.add("ok"); updateBtn(); };
+  rd.onerror = () => { files[key] = null; info.textContent = "Couldn't read that file. Try saving it again as CSV."; drop.classList.remove("ok"); updateBtn(); };
+  rd.readAsText(f);
+}
+function updateBtn() { $("btnLoad").disabled = !(files.loads && files.sites); }
+$("fileLoads").addEventListener("change", e => readFile(e.target, "loads", $("infoLoads"), $("dropLoads")));
+$("fileSites").addEventListener("change", e => readFile(e.target, "sites", $("infoSites"), $("dropSites")));
+function message(kind, title, list) { $("dataMsg").innerHTML = `<div class="msg ${kind}"><b>${esc(title)}</b>${list && list.length ? `<ul>${list.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}</div>`; }
+function loadCustom(loadsText, sitesText, cap, save) {
+  const S = readSites(sitesText); if (S.errs.length && !S.n) { message("err", "The sites file couldn't be read.", S.errs); return false; }
+  const L = readLoads(loadsText, S.nodes);
+  if (L.missing && L.missing.size) { message("err", "Some loads point to sites that aren't in the sites file. Add them and try again.", L.errs.slice(0, 8)); return false; }
+  if (!L.loads.length) { message("err", "No usable loads were found.", L.errs); return false; }
+  M = build({ nodes: S.nodes, loads: L.loads, cap, pool: S.pool, label: "Your data", isSample: false });
+  renderAll();
+  let saveFail = false;
+  if (save) { try { localStorage.setItem(STORE, JSON.stringify({ loadsText, sitesText, cap })); } catch (e) { saveFail = true; try { localStorage.removeItem(STORE); } catch (e2) {} } }
+  const warn = [...S.errs, ...L.errs]; if (L.bad) warn.unshift(`${fmt(L.bad)} row${L.bad === 1 ? " was" : "s were"} skipped.`);
+  if (saveFail) warn.push("These files are too large for this browser to remember, so you'll need to load them again next time you open the page.");
+  message(warn.length ? "err" : "ok", `Loaded ${fmt(L.loads.length)} loads across ${M.lanes.length} lanes and ${M.carriers.length} carriers.${warn.length ? " Some rows had problems:" : " Open any tab to see your network."}`, warn.slice(0, 8));
+  return true;
+}
+$("btnLoad").addEventListener("click", () => { const cap = Math.max(1, Math.round(+$("capIn").value || 26)); loadCustom(files.loads, files.sites, cap, true); });
+$("btnSample").addEventListener("click", () => { try { localStorage.removeItem(STORE); } catch (e) {} M = sampleModel(); renderAll(); message("ok", "Showing the sample data again."); });
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => { const el = $(b.dataset.copy), txt = el.textContent, label = b.textContent;
+  const done = ok => { b.textContent = ok ? "Copied" : "Select the text and copy it"; setTimeout(() => b.textContent = label, 1800); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => done(true), () => { selectText(el); done(false); });
+  else { selectText(el); done(false); } }));
+function selectText(el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+
+/* ---------- start ---------- */
+M = sampleModel();
+let restored = false;
+try { const saved = JSON.parse(localStorage.getItem(STORE) || "null"); if (saved) { $("capIn").value = saved.cap; restored = loadCustom(saved.loadsText, saved.sitesText, saved.cap, false); } } catch (e) {}
+if (!restored) renderAll();
+const hashTab = { network: 0, lanes: 1, consolidation: 2, peak: 3, trailers: 4, data: 5 }[location.hash.slice(1)];
+let savedTab = null; try { savedTab = localStorage.getItem("nfm-tab"); } catch (e) {}
+selectTab(hashTab !== undefined ? tabs[hashTab] : (tabs.find(t => t.id === savedTab) || tabs[0]));
+})();
+</script>

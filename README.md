@@ -2,7 +2,9 @@
 
 An interactive first-mile linehaul control tower for a fictional Canadian retailer.
 
-**Live app:** add your GitHub Pages link here
+**Live app:** 
+
+https://redbaron-99.github.io/northline-first-mile/
 
 Northline Retail moves freight from 3 DCs (Brampton, Laval, Delta) to cross-docks and service centres across Canada: 17 lanes, 5 carriers, about 27,000 loads from January 2023 to September 2026. All data is synthetic, with a built-in improvement story so the year-over-year views have something to show.
 
